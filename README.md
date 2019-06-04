@@ -12,6 +12,11 @@ IPs, MAC addresses, timestamps, and a few other types of strings are redacted:
     $ echo '{"ip": "10.0.0.1", "mac": "ff:ff:ff:ff:ff:ff"}' | wernicke
     {"ip":"200.225.40.176","mac":"00:de:c9:d8:d2:43"}
 
+Redaction happens in arbitrarily deeply nested structures:
+
+    $ echo '{"a": {"b": ["c", "d", {"e": "10.0.0.1"}]"}}}' | wernicke
+    {"a":{"b":["c","d",{"e":"252.252.233.18"}]}}
+
 Redacted values are not consistent across runs:
 
     $ echo '{"ip": "10.0.0.1", "mac": "ff:ff:ff:ff:ff:ff"}' | wernicke
