@@ -2,6 +2,7 @@
   (:require [clojure.data :refer [diff]]
             [latacora.wernicke.core :as wc]
             [latacora.wernicke.patterns :as wp]
+            [latacora.wernicke.patterns-test :refer [arns]]
             [clojure.test :as t]))
 
 (t/deftest redact-test
