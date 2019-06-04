@@ -41,7 +41,8 @@
 
 (def ^:private redactable
   [p/timestamp-re
-   p/mac-re
+   p/mac-colon-re
+   p/mac-dash-re
    p/ipv4-re
    p/long-decimal-re
    p/internal-ec2-hostname-re
