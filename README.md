@@ -10,12 +10,12 @@ Long keys are redacted:
 IPs, MAC addresses, timestamps, and a few other types of strings are redacted:
 
     $ echo '{"ip": "10.0.0.1", "mac": "ff:ff:ff:ff:ff:ff"}' | clj -m 'latacora.wernicke.core'
-    {"ip":"200.225.40.176","mac":"00:de-c9-d8:d2:43"}
+    {"ip":"200.225.40.176","mac":"00:de:c9:d8:d2:43"}
 
 Redacted values are not consistent across runs:
 
     $ echo '{"ip": "10.0.0.1", "mac": "ff:ff:ff:ff:ff:ff"}' | clj -m 'latacora.wernicke.core'
-    {"ip":"246.220.253.214","mac":"dc:08-90:75-e3:91"}
+    {"ip":"246.220.253.214","mac":"dc:08:90:75:e3:91"}
 
 Redacted values _are_ consistent within runs:
 
