@@ -16,9 +16,17 @@
   "A regex matching an ISO8601 timestamp as used in AWS."
   #"20\d{2}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+Z")
 
+(def mac-colon-re
+  "A MAC address with colons between the bytes."
+  #"([0-9a-f]{2}:){5}([0-9a-f]{2})")
+
+(def mac-dash-re
+  "A MAC address with dashes between the bytes."
+  #"([0-9a-f]{2}-){5}([0-9a-f]{2})")
+
 (def mac-re
-  "A MAC address."
-  #"([0-9a-f]{2}[:-]){5}([0-9a-f]{2})")
+  "A MAC address with dashes or colons between the bytes."
+  (re-pattern (format "(%s|%s)" mac-colon-re mac-dash-re)))
 
 (def ipv4-octet-re
   #"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
