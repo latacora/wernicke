@@ -38,6 +38,13 @@ To run the project's tests:
 
     $ clj -A:test
 
+To build a native image:
+
+    $ clj -A:native-image
+
+(This requires GraalVM to be installed with SubstrateVM, and the `GRAAL_HOME`
+environment variable to be set.)
+
 ## License
 
 Copyright © 2019 Latacora, LLC. All rights reserved.
