@@ -1,5 +1,5 @@
 {:paths ["resources" "src"]
- :deps {org.clojure/clojure {:mvn/version "RELEASE"}
+ :deps {org.clojure/clojure {:mvn/version "1.9.0"} ;; CLJ-1472
         org.clojure/test.check {:mvn/version "RELEASE"}
         com.gfredericks/test.chuck {:mvn/version "0.2.9"}
         com.zackehh/siphash {:mvn/version "1.0.0"}
@@ -10,4 +10,17 @@
  :aliases
  {:test {:main-opts ["-m" "kaocha.runner"]
          :extra-paths ["test-resources" "test"]
-         :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-418"}}}}}
+         :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-418"}}}
+
+  :native-image
+  {:main-opts ["-m clj.native-image latacora.wernicke.core"
+               "--verbose"
+               "--no-fallback"
+               "-Dclojure.compiler.direct-linking=true"
+               "-H:Name=wernicke"
+               "-H:+ReportExceptionStackTraces"
+               "--initialize-at-build-time"
+               "--report-unsupported-elements-at-runtime"]
+   :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
+   :extra-deps {clj.native-image {:git/url "https://github.com/taylorwood/clj.native-image.git"
+                                  :sha "546a77a4492be2f1d9b48e43cb48fb0ebfa39cc2"}}}}}
