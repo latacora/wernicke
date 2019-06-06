@@ -70,27 +70,6 @@
   ([x k]
    (sr/transform [TREE-LEAVES] (partial redact-1 k) x)))
 
-(defn ^:private get-clipboard
-  "Get the current clipboard instance."
-  []
-  (.getSystemClipboard (java.awt.Toolkit/getDefaultToolkit)))
-
-(defn ^:private read-from-clipboard!
-  "Slurps from the clipboard."
-  []
-  (if-some [contents (.getContents (get-clipboard) nil)]
-    (.getTransferData contents DataFlavor/stringFlavor)))
-
-(defn ^:private write-to-clipboard!
-  "Sets text to clipboard."
-  [text]
-  (.setContents (get-clipboard) (StringSelection. text) nil))
-
-(defn redact-clipboard!
-  "Redacts the value in the clipboard and puts the result back."
-  []
-  (-> (read-from-clipboard!) json/decode redact json/encode write-to-clipboard!))
-
 (defn redact-stdio!
   "Redacts the JSON value read from stdin and writes it to stdout."
   []
