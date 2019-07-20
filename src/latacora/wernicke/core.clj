@@ -8,19 +8,44 @@
   values will be redacted; the key `PrivateIpAddresses` should not be redacted
   even though its value should be."
   (:require [cheshire.core :as json]
-            [clojure.test.check
-             [generators :as gen]
-             [random :as rand]
-             [rose-tree :as rose]]
+            [clojure.test.check.generators :as gen]
+            [clojure.test.check.random :as rand]
+            [clojure.test.check.rose-tree :as rose]
             [com.gfredericks.test.chuck.generators :as cgen]
+            [com.gfredericks.test.chuck.regexes :as cre]
             [com.rpl.specter :as sr]
             [eidolon.core :refer [TREE-LEAVES]]
             [latacora.wernicke.patterns :as p]
-            [taoensso.nippy :as nippy])
+            [taoensso.nippy :as nippy]
+            [clojure.spec.alpha :as s])
   (:import com.zackehh.siphash.SipHash
            [java.awt.datatransfer DataFlavor StringSelection]
            java.security.SecureRandom)
   (:gen-class))
+
+(defmulti ->gen ::type)
+(defmethod ->gen ::regex
+  [{::keys [pattern]}]
+  ())
+
+(def pattern? (partial instance? java.util.regex.Pattern))
+(s/def ::pattern pattern?)
+
+(defn regex-rule
+  ([pattern]
+   (regex-rule pattern nil))
+  ([pattern opts]
+   (let [rule {::type ::regex
+               ::pattern pattern
+               ::test-chuck-parse pattern
+               ::generator-fn nil}]
+     (merge opts rule))))
+
+(defn string-from-regex*
+  "Like [[cgen/string-from-regex]] but willing to ignore unsupported features like
+  named groups."
+  [pattern]
+  (cre/analyzed->generator (cre/parse (str pattern))))
 
 (defn key!
   "Generate a new SipHash key."
