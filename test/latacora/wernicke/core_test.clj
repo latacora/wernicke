@@ -54,12 +54,6 @@
     (t/is (re-matches re after))
     (t/is (not= before after))))
 
-;; This test is commented out because we've currently decided not to deal with keys at all.
-#_(t/deftest redact-keys-in-tree-test
-  (let [original-key "10.0.0.1"
-        original-val ::x
-        original (assoc-in {} (repeat 3 original-key) original-val)
-        redacted (#'wc/redact original)
-        redacted-key (-> redacted first key)]
-    (t/is (not= original-key redacted-key))
-    (t/is (= (get-in redacted (repeat 3 redacted-key)) original-val))))
+(t/deftest regex-compile-test
+  (let [rule (wc/compile-rule {::wc/type ::wc/regex ::pattern wp/ipv4-re})]
+    (t/is (some? rule))))

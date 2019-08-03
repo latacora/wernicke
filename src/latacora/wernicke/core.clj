@@ -23,31 +23,34 @@
            java.security.SecureRandom)
   (:gen-class))
 
-(defmulti ->gen ::type)
-(defmethod ->gen ::regex
-  [{::keys [pattern]}]
-  ())
+(defmulti compile-rule ::type)
+(defmethod compile-rule ::regex
+  [{::keys [pattern] :as rule}]
+  (let [parsed (-> pattern str cre/parse)]
+    (assoc
+     rule
+     ::matcher-fn (partial re-matches pattern)
+     ;; Unlike [[cgen/string-from-regex]], we're willing to temporarily ignore
+     ;; unsupported features like named groups. That's _generally_ a bug, and we
+     ;; should check for them, but that's blocked on upstream test.chuck work.
+     ::generator-fn (fn [match] (cre/analyzed->generator parsed)))))
+
+(defn regex-rule
+  "Given a regex and optional ops, produce a compiled rule."
+  ([pattern]
+   (regex-rule pattern nil))
+  ([pattern opts]
+   (compile-rule (assoc opts ::type ::regex ::pattern pattern))))
 
 (def pattern? (partial instance? java.util.regex.Pattern))
 (s/def ::pattern pattern?)
 
-(defn regex-rule
-  ([pattern]
-   (regex-rule pattern nil))
-  ([pattern opts]
-   (let [rule {::type ::regex
-               ::pattern pattern
-               ::test-chuck-parse pattern
-               ::generator-fn nil}]
-     (merge opts rule))))
+(def matcher? some?)
+(s/def ::matcher-fn matcher?)
+(def generator? some?)
+(s/def ::generator-fn generator?)
 
-(defn string-from-regex*
-  "Like [[cgen/string-from-regex]] but willing to ignore unsupported features like
-  named groups."
-  [pattern]
-  (cre/analyzed->generator (cre/parse (str pattern))))
-
-(defn key!
+(defn ^:private key!
   "Generate a new SipHash key."
   []
   (let [k (byte-array 16)]
@@ -64,7 +67,12 @@
   (let [rnd (->> val nippy/freeze (siphash key) rand/make-random)]
     (-> re cgen/string-from-regex (gen/call-gen rnd 1) rose/root)))
 
-(def ^:private redactable
+(defn ^:private compute-dual2
+  [hash generator val]
+  (let [rnd (->> val hash rand/make-random)]
+    (-> generator (gen/call-gen rnd 1) rose/root)))
+
+(def ^:private redactable-regexes
   [p/timestamp-re
    p/mac-colon-re
    p/mac-dash-re
@@ -73,16 +81,24 @@
    p/internal-ec2-hostname-re
    p/arn-re])
 
+(def ^:private default-rules
+  (map regex-rule redactable-regexes))
+
 (defn ^:private redact-1
   "Redacts a single item, assuming it is redactable."
   [key val]
-  (let [compute-dual (partial compute-dual key val)]
+  (let [compute-dual (partial compute-dual key val)
+        hash (let [sh (SipHash. key)]
+               #(->> % nippy/freeze (.hash sh) (.get)))]
     (if (string? val)
       (or (when-let [[_ pfx _] (re-matches p/aws-resource-id-re val)]
             (str pfx (compute-dual p/aws-resource-suffix-re)))
           (first
-           (for [re redactable :when (re-matches re val)]
-             (compute-dual re)))
+           (for [{::keys [generator-fn matcher-fn]} default-rules
+                 :let [match (matcher-fn val)]
+                 :when match
+                 :let [gen (generator-fn match)]]
+             (compute-dual2 hash gen val)))
           (when (>= (count val) 12)
             (compute-dual (re-pattern (str "\\w{" (count val) "}"))))
           val)
