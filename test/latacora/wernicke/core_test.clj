@@ -3,7 +3,8 @@
             [latacora.wernicke.core :as wc]
             [latacora.wernicke.patterns :as wp]
             [latacora.wernicke.patterns-test :refer [arns]]
-            [clojure.test :as t]))
+            [clojure.test :as t]
+            [clojure.string :as str]))
 
 (t/deftest redact-test
   (t/are [x] (= x (#'wc/redact x))
@@ -57,3 +58,11 @@
 (t/deftest regex-compile-test
   (let [rule (wc/compile-rule {::wc/type ::wc/regex ::pattern wp/ipv4-re})]
     (t/is (some? rule))))
+
+(t/deftest regex-with-fixed-group-test
+  (let [orig {:vpc-id "vpc-12345"
+              :sg-id "sg-12345"
+              :acl-id "acl-12345"}
+        redacted (wc/redact orig)]
+
+    ))
