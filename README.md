@@ -58,6 +58,10 @@ To build a native image:
 (This requires GraalVM to be installed with SubstrateVM, and the `GRAAL_HOME`
 environment variable to be set.)
 
+## Future plans
+
+- Configurable redactions
+
 ## License
 
 Copyright © 2019 Latacora, LLC. All rights reserved.
