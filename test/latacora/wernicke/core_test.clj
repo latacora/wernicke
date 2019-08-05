@@ -60,9 +60,9 @@
     (t/is (some? rule))))
 
 (t/deftest regex-with-fixed-group-test
-  (let [orig {:vpc-id "vpc-12345"
-              :sg-id "sg-12345"
-              :acl-id "acl-12345"}
-        redacted (wc/redact orig)]
-
-    ))
+  (let [{:keys [vpc-id sg-id acl-id]} (wc/redact {:vpc-id "vpc-12345"
+                                                  :sg-id "sg-12345"
+                                                  :acl-id "acl-12345"})]
+    (t/is (str/starts-with? vpc-id "vpc-"))
+    (t/is (str/starts-with? sg-id "sg-"))
+    (t/is (str/starts-with? acl-id "acl-"))))
