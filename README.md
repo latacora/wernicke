@@ -31,7 +31,7 @@ Named after Carl Wernicke, a German physician who did research on the brain.
 Wernicke's aphasia is a condition where patients demonstrate fluent speech with
 intact syntax but with nonsense words. This tool is kind of like that: the
 resulting structure is maintained but all the words are swapped out with
-nonsense.
+(internally consistent) nonsense.
 
 You might want this because you have test data where the actual values are
 sensitive. Because the changes are consistent within the data, there's less
