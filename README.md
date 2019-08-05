@@ -2,7 +2,7 @@
 
 A redaction tool. Run `wernicke` with some JSON on stdin.
 
-Long keys are redacted:
+Long (>12) keys are redacted:
 
     $ echo '{"some_key": "ABBBAAAABBBBAAABBBAABB"}' | wernicke
     {"some_key":"NFbCFsVKzszOKFBC3LI0RG"}
