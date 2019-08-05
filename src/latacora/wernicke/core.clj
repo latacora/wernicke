@@ -14,13 +14,36 @@
             [com.gfredericks.test.chuck.generators :as cgen]
             [com.gfredericks.test.chuck.regexes :as cre]
             [com.rpl.specter :as sr]
-            [eidolon.core :refer [TREE-LEAVES]]
+            [eidolon.core :as ec :refer [TREE-LEAVES]]
             [latacora.wernicke.patterns :as p]
             [taoensso.nippy :as nippy]
             [clojure.spec.alpha :as s])
   (:import com.zackehh.siphash.SipHash
            java.security.SecureRandom)
   (:gen-class))
+
+(def RE-PARSE-ELEMS
+  "A navigator for all the parsed elements in a test.chuck regex parse tree.
+
+  Stops at each regex part and recursively navigates down into every element."
+  (sr/recursive-path [] p [(sr/stay-then-continue :elements sr/ALL p)]))
+
+(defn replace-group-with-constant
+  "Given a test.chuck regex parse tree, find the group with the given name, and
+  return a new parse tree with the group replaced with the constant string
+  value."
+  [parsed group-name constant]
+  (sr/setval
+   [RE-PARSE-ELEMS
+    (comp #{:group} :type)
+    (comp #{[:GroupFlags [:NamedCapturingGroup [:GroupName group-name]]]} :flag)]
+   {:type :character :character constant}
+   parsed))
+
+(cre/parse "(?<a>abc)(?<b>def)")
+
+(s/def ::group-behavior #{::keep ::keep-length})
+(s/def ::group-config (s/map-of string? ::group-behavior))
 
 (defmulti compile-rule ::type)
 (defmethod compile-rule ::regex
@@ -56,21 +79,6 @@
     (.nextBytes (SecureRandom.) k)
     k))
 
-(defn ^:private siphash
-  "Given a key and a value (both bytes), hash to a long."
-  [key v]
-  (-> (SipHash. key) (.hash v) (.get)))
-
-(defn ^:private compute-dual
-  [key val re]
-  (let [rnd (->> val nippy/freeze (siphash key) rand/make-random)]
-    (-> re cgen/string-from-regex (gen/call-gen rnd 1) rose/root)))
-
-(defn ^:private compute-dual2
-  [hash generator val]
-  (let [rnd (->> val hash rand/make-random)]
-    (-> generator (gen/call-gen rnd 1) rose/root)))
-
 (def ^:private redactable-regexes
   [p/timestamp-re
    p/mac-colon-re
@@ -85,30 +93,21 @@
 
 (defn ^:private redact-1
   "Redacts a single item, assuming it is redactable."
-  [key val]
-  (let [compute-dual (partial compute-dual key val)
-        hash (let [sh (SipHash. key)]
-               #(->> % nippy/freeze (.hash sh) (.get)))]
-    (if (string? val)
-      (or (when-let [[_ pfx _] (re-matches p/aws-resource-id-re val)]
-            (str pfx (compute-dual p/aws-resource-suffix-re)))
-          (first
-           (for [{::keys [generator-fn matcher-fn]} default-rules
-                 :let [match (matcher-fn val)]
-                 :when match
-                 :let [gen (generator-fn match)]]
-             (compute-dual2 hash gen val)))
-          (when (>= (count val) 12)
-            (compute-dual (re-pattern (str "\\w{" (count val) "}"))))
-          val)
-      val)))
+  [hash val]
+  (first
+   (for [{::keys [generator-fn matcher-fn]} default-rules
+         :let [gen (some-> val matcher-fn generator-fn)
+               rnd (-> val hash rand/make-random)]]
+     (-> gen (gen/call-gen rnd 1) rose/root))))
 
 (defn redact
   "Attempt to automatically redact the structured value."
   ([x]
    (redact x (key!)))
   ([x k]
-   (sr/transform [TREE-LEAVES] (partial redact-1 k) x)))
+   (let [sh (SipHash. k) ;; Instantiate once for performance benefit.
+         hash (fn [v] (->> v nippy/freeze (.hash sh) (.get)))]
+     (sr/transform [TREE-LEAVES string?] (partial redact-1 hash) x))))
 
 (defn redact-stdio!
   "Redacts the JSON value read from stdin and writes it to stdout."
