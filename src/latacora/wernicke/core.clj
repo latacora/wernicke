@@ -62,7 +62,7 @@
   [parsed group-config ^java.util.regex.Matcher m]
   (reduce
    (fn [parsed [group-name behavior]]
-     (let [actual (.group m group-name)]
+     (let [actual (.group m ^java.lang.String group-name)]
        (case behavior
          ::keep (set-group-value parsed group-name actual)
          ::keep-length (set-group-length parsed group-name (count actual)))))
