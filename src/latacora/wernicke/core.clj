@@ -41,13 +41,16 @@
   return a new parse tree with the group replaced with the constant string
   value."
   [parsed group-name constant]
-  (sr/setval (named-group-sel group-name) {:type :character :character constant} parsed))
+  (sr/setval*
+   (named-group-sel group-name)
+   {:type :character :character constant}
+   parsed))
 
 (defn ^:private set-group-length
   "Given a test.chuck regex parse tree, find the group with the given name, and
   then fix the length of all repetitions to be exactly the given len."
   [parsed group-name len]
-  (sr/setval
+  (sr/setval*
    [(named-group-sel group-name) ;; Find the parent named group
     RE-PARSE-ELEMS (comp #{:repetition} :type) :bounds]
    [len len]
