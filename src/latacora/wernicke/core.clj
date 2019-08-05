@@ -104,7 +104,7 @@
       val)))
 
 (defn redact
-  "Attempt to automatically redact the AWS response."
+  "Attempt to automatically redact the structured value."
   ([x]
    (redact x (key!)))
   ([x k]
