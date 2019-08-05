@@ -19,7 +19,6 @@
             [taoensso.nippy :as nippy]
             [clojure.spec.alpha :as s])
   (:import com.zackehh.siphash.SipHash
-           [java.awt.datatransfer DataFlavor StringSelection]
            java.security.SecureRandom)
   (:gen-class))
 
