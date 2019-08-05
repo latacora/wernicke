@@ -33,6 +33,10 @@ intact syntax but with nonsense words. This tool is kind of like that: the
 resulting structure is maintained but all the words are swapped out with
 nonsense.
 
+You might want this because you have test data where the actual values are
+sensitive. Because the changes are consistent within the data, there's less
+chance this will ruin your data for testing purposes.
+
 ## Installation
 
 Download from https://github.com/latacora/wernicke
