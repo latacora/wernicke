@@ -22,40 +22,67 @@
            java.security.SecureRandom)
   (:gen-class))
 
-(def RE-PARSE-ELEMS
+(def ^:private RE-PARSE-ELEMS
   "A navigator for all the parsed elements in a test.chuck regex parse tree.
 
   Stops at each regex part and recursively navigates down into every element."
   (sr/recursive-path [] p [(sr/stay-then-continue :elements sr/ALL p)]))
 
-(defn replace-group-with-constant
+(defn ^:private named-group-sel
+  "Creates a Specter navigator to the given named regex group entry in a
+  test.chuck regex parse tree."
+  [group-name]
+  [RE-PARSE-ELEMS
+   (comp #{:group} :type)
+   (comp #{[:GroupFlags [:NamedCapturingGroup [:GroupName group-name]]]} :flag)])
+
+(defn ^:private set-group-value
   "Given a test.chuck regex parse tree, find the group with the given name, and
   return a new parse tree with the group replaced with the constant string
   value."
   [parsed group-name constant]
-  (sr/setval
-   [RE-PARSE-ELEMS
-    (comp #{:group} :type)
-    (comp #{[:GroupFlags [:NamedCapturingGroup [:GroupName group-name]]]} :flag)]
-   {:type :character :character constant}
-   parsed))
+  (sr/setval (named-group-sel group-name) {:type :character :character constant} parsed))
 
-(cre/parse "(?<a>abc)(?<b>def)")
+(defn ^:private set-group-length
+  "Given a test.chuck regex parse tree, find the group with the given name, and
+  then fix the length of all repetitions to be exactly the given len."
+  [parsed group-name len]
+  (sr/setval
+   [(named-group-sel group-name) ;; Find the parent named group
+    RE-PARSE-ELEMS (comp #{:repetition} :type) :bounds]
+   [len len]
+   parsed))
 
 (s/def ::group-behavior #{::keep ::keep-length})
 (s/def ::group-config (s/map-of string? ::group-behavior))
 
+(defn ^:private apply-group-behavior
+  "Apply all of the behaviors specified in the group config to this test.chuck
+  regex parse tree."
+  [parsed group-config ^java.util.regex.Matcher m]
+  (reduce
+   (fn [parsed [group-name behavior]]
+     (let [actual (.group m group-name)]
+       (case behavior
+         ::keep (set-group-value parsed group-name actual)
+         ::keep-length (set-group-length parsed group-name (count actual)))))
+   parsed group-config))
+
 (defmulti compile-rule ::type)
 (defmethod compile-rule ::regex
-  [{::keys [pattern] :as rule}]
+  [{::keys [pattern group-config] :as rule}]
   (let [parsed (-> pattern str cre/parse)]
     (assoc
      rule
-     ::matcher-fn (partial re-matches pattern)
      ;; Unlike [[cgen/string-from-regex]], we're willing to temporarily ignore
      ;; unsupported features like named groups. That's _generally_ a bug, and we
      ;; should check for them, but that's blocked on upstream test.chuck work.
-     ::generator-fn (fn [match] (cre/analyzed->generator parsed)))))
+     ::generator-fn (fn [val]
+                      (let [m (re-matcher pattern val)]
+                        (when (.matches m)
+                          (-> parsed
+                              (apply-group-behavior group-config m)
+                              (cre/analyzed->generator))))))))
 
 (defn regex-rule
   "Given a regex and optional ops, produce a compiled rule."
@@ -67,10 +94,8 @@
 (def pattern? (partial instance? java.util.regex.Pattern))
 (s/def ::pattern pattern?)
 
-(def matcher? some?)
-(s/def ::matcher-fn matcher?)
-(def generator? some?)
-(s/def ::generator-fn generator?)
+(def generator-fn? some?)
+(s/def ::generator-fn generator-fn?)
 
 (defn ^:private key!
   "Generate a new SipHash key."
@@ -79,26 +104,28 @@
     (.nextBytes (SecureRandom.) k)
     k))
 
-(def ^:private redactable-regexes
-  [p/timestamp-re
-   p/mac-colon-re
-   p/mac-dash-re
-   p/ipv4-re
-   p/long-decimal-re
-   p/internal-ec2-hostname-re
-   p/arn-re])
-
 (def ^:private default-rules
-  (map regex-rule redactable-regexes))
+  [(regex-rule p/timestamp-re)
+   (regex-rule p/mac-colon-re)
+   (regex-rule p/mac-dash-re)
+   (regex-rule p/ipv4-re)
+   (regex-rule p/long-decimal-re)
+   (regex-rule p/internal-ec2-hostname-re)
+   (regex-rule p/arn-re)
+   (regex-rule p/aws-resource-id-re {::group-config {"type" ::keep "id" ::keep-length}})
+   (regex-rule #"(?<s>[A-Za-z0-9]{12,})" {::group-config {"s" ::keep-length}})])
 
 (defn ^:private redact-1
   "Redacts a single item, assuming it is redactable."
   [hash val]
-  (first
-   (for [{::keys [generator-fn matcher-fn]} default-rules
-         :let [gen (some-> val matcher-fn generator-fn)
-               rnd (-> val hash rand/make-random)]]
-     (-> gen (gen/call-gen rnd 1) rose/root))))
+  (let [rnd (-> val hash rand/make-random)]
+    (-> (eduction
+         (map (fn [{::keys [generator-fn]}]
+                (some-> val generator-fn (gen/call-gen rnd 1) rose/root)))
+         (filter some?)
+         default-rules)
+        (first)
+        (or val))))
 
 (defn redact
   "Attempt to automatically redact the structured value."

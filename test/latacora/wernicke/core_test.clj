@@ -4,7 +4,10 @@
             [latacora.wernicke.patterns :as wp]
             [latacora.wernicke.patterns-test :refer [arns]]
             [clojure.test :as t]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.test.check.properties :as prop]
+            [clojure.test.check.clojure-test :as ct]
+            [com.gfredericks.test.chuck.regexes :as cre]))
 
 (t/deftest redact-test
   (t/are [x] (= x (#'wc/redact x))
@@ -66,3 +69,48 @@
     (t/is (str/starts-with? vpc-id "vpc-"))
     (t/is (str/starts-with? sg-id "sg-"))
     (t/is (str/starts-with? acl-id "acl-"))))
+
+(def alt-pattern
+  "(?<a>(a|b|c))")
+
+(def fixed-alt-pattern
+  (-> alt-pattern cre/parse (#'wc/set-group-value "a" "x")))
+
+(t/deftest fixed-alt-pattern-tests
+  (t/is (=  {:type :alternation
+             :elements [{:type :concatenation
+                         :elements [{:type :character
+                                     :character "x"
+                                     :elements nil}]}]}
+            fixed-alt-pattern)))
+
+(ct/defspec fixed-val-generators-work-as-expected
+  (prop/for-all
+   [v (cre/analyzed->generator fixed-alt-pattern)]
+   (= v "x")))
+
+(def one-to-inf-rep-pattern
+  "(?<a>x{1,})")
+
+(def fixed-one-to-inf-rep-pattern
+  (-> one-to-inf-rep-pattern cre/parse (#'wc/set-group-length "a" 1)))
+
+(t/deftest set-group-length-test
+  (t/is (= {:type :alternation
+            :elements [{:type :concatenation
+                        :elements [{:type :group
+                                    :elements [{:type :alternation
+                                                :elements [{:type :concatenation
+                                                            :elements [{:type :repetition
+                                                                        :elements [{:type :character
+                                                                                    :character \x
+                                                                                    :elements nil}]
+                                                                        :bounds [1 1]}]}]}]
+                                    :flag [:GroupFlags [:NamedCapturingGroup [:GroupName "a"]]]
+                                    :unsupported #{:flags}}]}]}
+           fixed-one-to-inf-rep-pattern)))
+
+(ct/defspec fixed-len-generators-work-as-expected
+  (prop/for-all
+   [v (cre/analyzed->generator fixed-one-to-inf-rep-pattern)]
+   (= (count v) 1)))

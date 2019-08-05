@@ -2,15 +2,11 @@
   (:require
    [clojure.string :as str]))
 
-(def aws-resource-suffix-re
-  "A regex matching the generic AWS resource id suffix."
-  #"([0-9a-f]{5,7})")
-
 (def aws-resource-id-re
   "A regex matching generic AWS resource id.
 
   Examples: rtb-ff1234, acl-cafe12, subnet-fefe34."
-  (re-pattern (str #"([a-z]{2,7}-)+" aws-resource-suffix-re)))
+  #"(?<type>[a-z]{1,15}-)+(?<id>[0-9a-f]{5,17})")
 
 (def timestamp-re
   "A regex matching an ISO8601 timestamp as used in AWS."
