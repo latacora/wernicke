@@ -29,3 +29,13 @@
   (t/is (re-matches wp/mac-re mac-with-colons))
   (t/is (re-matches wp/mac-re mac-with-dashes))
   (t/is (not (re-matches wp/mac-re mac-travesty-with-mixed-delimiters))))
+
+(def aws-resource-types
+  ["i" "sg" "rtb" "subnet" "acl" "aclassoc" "bundle" "conversion-task" "customer-gateway" "dhcp-options" "elastic-ip-allocation" "elastic-ip-association" "export-task" "flow-log" "image" "import-task" "internet-gateway" "network-acl" "network-acl-association" "network-interface" "network-interface-attachment" "prefix-list" "route-table" "route-table-association" "security-group" "subnet" "subnet-cidr-block-association" "vpc" "vpc-cidr-block-association" "vpc-endpoint" "vpc-peering-connection" "vpn-connection" "vpn-gateway"])
+
+(t/deftest aws-resource-type-tests
+  (doseq [t aws-resource-types]
+    (t/is (re-matches wp/aws-resource-id-re (str t "-12345"))
+          "short id works")
+    (t/is (re-matches wp/aws-resource-id-re (str t "-0123456789abcdef0"))
+          "long id works")))
