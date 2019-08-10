@@ -45,7 +45,7 @@ Download from https://github.com/latacora/wernicke
 
 To run the project directly from a source checkout:
 
-    $ clj -m latacora.wernicke
+    $ clj -m latacora.wernicke.core
 
 To run the project's tests:
 
