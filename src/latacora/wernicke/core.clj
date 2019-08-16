@@ -112,10 +112,10 @@
    (regex-rule p/mac-colon-re)
    (regex-rule p/mac-dash-re)
    (regex-rule p/ipv4-re)
-   (regex-rule p/long-decimal-re)
    (regex-rule p/internal-ec2-hostname-re)
    (regex-rule p/arn-re)
    (regex-rule p/aws-resource-id-re {::group-config {"type" ::keep "id" ::keep-length}})
+   (regex-rule p/long-decimal-re)
    (regex-rule #"(?<s>[A-Za-z0-9]{12,})" {::group-config {"s" ::keep-length}})])
 
 (defn ^:private redact-1
