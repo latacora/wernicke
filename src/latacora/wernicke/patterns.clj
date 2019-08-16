@@ -45,3 +45,9 @@
         account (str "(" long-decimal-re "|\\*)?")
         resource "[A-Za-z0-9\\-\\._ */:]+"]
     (re-pattern (str/join ":" ["arn" partition service region account resource]))))
+
+(def aws-iam-unique-id-re
+  "A regex for IAM unique ids.
+
+  See https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-unique-ids"
+  #"(?<type>AAGA|ACCA|AGPA|AIDA|AIPA|AKIA|ANPA|ANVA|APKA|AROA|ASCA|ASIA)(?<id>[A-Z0-9]{16,})")

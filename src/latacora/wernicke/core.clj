@@ -112,6 +112,7 @@
    (regex-rule p/mac-colon-re)
    (regex-rule p/mac-dash-re)
    (regex-rule p/ipv4-re)
+   (regex-rule p/aws-iam-unique-id-re {::group-config {"type" ::keep "id" ::keep-length}})
    (regex-rule p/internal-ec2-hostname-re)
    (regex-rule p/arn-re)
    (regex-rule p/aws-resource-id-re {::group-config {"type" ::keep "id" ::keep-length}})

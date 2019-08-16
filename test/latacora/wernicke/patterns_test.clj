@@ -39,3 +39,12 @@
           "short id works")
     (t/is (re-matches wp/aws-resource-id-re (str t "-0123456789abcdef0"))
           "long id works")))
+
+(t/deftest aws-iam-unqiue-id-test
+  (t/are [id] (re-matches wp/aws-iam-unique-id-re id)
+    "AIDAJQABLZS4A3QDU576Q"
+    "AROAJ3UQRY75GDAKWTAA2")
+
+  (t/are [s] (not (re-matches wp/aws-iam-unique-id-re s))
+    "iddqd"
+    "XYZZY"))

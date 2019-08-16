@@ -114,3 +114,13 @@
   (prop/for-all
    [v (cre/analyzed->generator fixed-one-to-inf-rep-pattern)]
    (= (count v) 1)))
+
+(t/deftest aws-iam-unique-id-tests
+  (let [before {:a (str "AKIA" (str/join (repeat 16 "X")))
+                :b (str "AROA" (str/join (repeat 16 "Y")))}
+        after (wc/redact before)]
+    (t/is (-> after :a (str/starts-with? "AKIA")))
+    (t/is (-> after :b (str/starts-with? "AROA")))
+    (t/is (-> after :a count (= 20)))
+    (t/is (-> after :b count (= 20)))
+    (t/is (not= before after))))
