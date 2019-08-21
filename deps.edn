@@ -6,11 +6,11 @@
         com.rpl/specter {:mvn/version "1.1.2"}
         eidolon {:mvn/version "0.1.0"}
         com.taoensso/nippy {:mvn/version "2.14.0"}
-        cheshire/cheshire {:mvn/version "5.8.1"}}
+        cheshire/cheshire {:mvn/version "5.9.0"}}
  :aliases
  {:test {:main-opts ["-m" "kaocha.runner"]
          :extra-paths ["test-resources" "test"]
-         :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-418"}}}
+         :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-529"}}}
 
   :native-image
   {:main-opts ["-m clj.native-image latacora.wernicke.core"
@@ -23,4 +23,4 @@
                "--report-unsupported-elements-at-runtime"]
    :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
    :extra-deps {clj.native-image {:git/url "https://github.com/taylorwood/clj.native-image.git"
-                                  :sha "546a77a4492be2f1d9b48e43cb48fb0ebfa39cc2"}}}}}
+                                  :sha "e480cb92b9a85913b3bcad9d878db237d810f286"}}}}}
