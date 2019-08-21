@@ -106,8 +106,7 @@
                                                                                     :character \x
                                                                                     :elements nil}]
                                                                         :bounds [1 1]}]}]}]
-                                    :flag [:GroupFlags [:NamedCapturingGroup [:GroupName "a"]]]
-                                    :unsupported #{:flags}}]}]}
+                                    :flag [:GroupFlags [:NamedCapturingGroup [:GroupName "a"]]]}]}]}
            fixed-one-to-inf-rep-pattern)))
 
 (ct/defspec fixed-len-generators-work-as-expected

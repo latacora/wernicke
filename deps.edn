@@ -1,7 +1,7 @@
 {:paths ["resources" "src"]
  :deps {org.clojure/clojure {:mvn/version "1.9.0"} ;; CLJ-1472
         org.clojure/test.check {:mvn/version "RELEASE"}
-        com.gfredericks/test.chuck {:mvn/version "0.2.9"}
+        com.gfredericks/test.chuck {:mvn/version "0.2.10"}
         com.zackehh/siphash {:mvn/version "1.0.0"}
         com.rpl/specter {:mvn/version "1.1.2"}
         eidolon {:mvn/version "0.1.0"}
