@@ -6,14 +6,15 @@
         com.rpl/specter {:mvn/version "1.1.2"}
         eidolon {:mvn/version "0.1.0"}
         com.taoensso/nippy {:mvn/version "2.14.0"}
-        cheshire/cheshire {:mvn/version "5.9.0"}}
+        cheshire/cheshire {:mvn/version "5.9.0"}
+        org.clojure/tools.cli {:mvn/version "0.4.2"}}
  :aliases
  {:test {:main-opts ["-m" "kaocha.runner"]
          :extra-paths ["test-resources" "test"]
          :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-529"}}}
 
   :native-image
-  {:main-opts ["-m clj.native-image latacora.wernicke.core"
+  {:main-opts ["-m clj.native-image latacora.wernicke.cli"
                "--verbose"
                "--no-fallback"
                "-Dclojure.compiler.direct-linking=true"

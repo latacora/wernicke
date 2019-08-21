@@ -7,8 +7,7 @@
   redacted to a string of the same length as a failsafe. Finally, only leaf
   values will be redacted; the key `PrivateIpAddresses` should not be redacted
   even though its value should be."
-  (:require [cheshire.core :as json]
-            [clojure.test.check.generators :as gen]
+  (:require [clojure.test.check.generators :as gen]
             [clojure.test.check.random :as rand]
             [clojure.test.check.rose-tree :as rose]
             [com.gfredericks.test.chuck.generators :as cgen]
@@ -19,8 +18,7 @@
             [taoensso.nippy :as nippy]
             [clojure.spec.alpha :as s])
   (:import com.zackehh.siphash.SipHash
-           java.security.SecureRandom)
-  (:gen-class))
+           java.security.SecureRandom))
 
 (def ^:private RE-PARSE-ELEMS
   "A navigator for all the parsed elements in a test.chuck regex parse tree.
@@ -139,13 +137,3 @@
    (let [sh (SipHash. k) ;; Instantiate once for performance benefit.
          hash (fn [v] (->> v nippy/freeze (.hash sh) (.get)))]
      (sr/transform [TREE-LEAVES string?] (partial redact-1 hash) x))))
-
-(defn redact-stdio!
-  "Redacts the JSON value read from stdin and writes it to stdout."
-  []
-  (-> *in* json/decode-stream redact (json/encode-stream *out*)))
-
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  (redact-stdio!))
