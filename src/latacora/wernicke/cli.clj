@@ -76,7 +76,7 @@
   This mostly exists so it can be stubbed out for testing, since it's annoying
   to test System/exit."
   [message code]
-  (println message)
+  (binding [*out* *err*] (println message))
   (System/exit code))
 
 (defn -main
