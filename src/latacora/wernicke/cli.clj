@@ -19,16 +19,15 @@
   [format-name impls]
   (let [short (str "-" (first format-name))
         long (format "--%s FORMAT" format-name)
-        message (str format-name " format")
-        formats-error (->> (keys impls)
-                           (map name)
-                           (str/join ", ")
-                           (str "format must be one of "))]
+        formats (->> impls keys (map name) (str/join ", "))
+        message (format "%s format (one of %s)" format-name formats)
+        formats-error (str "format must be one of " formats)]
     [short long message
      :id (keyword (str format-name "-fn"))
      :default (impls :json)
+     :default-desc "json"
      :parse-fn (comp impls keyword str/lower-case)
-     :validate-fn [some? formats-error]]))
+     :validate [some? formats-error]]))
 
 (def ^:private cli-opts
   [["-h" "--help" "display help message"]
@@ -53,8 +52,10 @@
 
 (defn ^:private error-msg
   [errors]
-  (str "The following errors occurred while parsing your command:\n\n"
-       (str/join \newline errors)))
+  (format
+   "The following %s occurred while parsing your command:\n%s\n"
+   (if (-> errors count (= 1)) "error" "errors")
+   (str/join \newline errors)))
 
 (defn ^:private validate-args
   [args]
@@ -64,12 +65,16 @@
       {:exit-message (usage summary) :ok true}
 
       errors
-      {:exit-message (error-msg errors) :ok false}
+      {:exit-message (str (error-msg errors) "\n" (usage summary)) :ok false}
 
       :else
       {:opts options})))
 
 (defn ^:private exit!
+  "Prints the message and exits the process with the given code.
+
+  This mostly exists so it can be stubbed out for testing, since it's annoying
+  to test System/exit."
   [message code]
   (println message)
   (System/exit code))
@@ -79,5 +84,6 @@
   [& args]
   (let [{:keys [opts exit-message ok]} (validate-args args)
         {:keys [input-fn output-fn]} opts]
-    (when exit-message (exit! exit-message (if ok 0 1)))
-    (-> *in* input-fn wc/redact output-fn)))
+    (if exit-message
+      (exit! exit-message (if ok 0 1))
+      (-> *in* input-fn wc/redact output-fn))))
