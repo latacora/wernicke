@@ -16,7 +16,8 @@
             [eidolon.core :as ec :refer [TREE-LEAVES]]
             [latacora.wernicke.patterns :as p]
             [taoensso.nippy :as nippy]
-            [clojure.spec.alpha :as s])
+            [clojure.spec.alpha :as s]
+            [taoensso.timbre :as log])
   (:import com.zackehh.siphash.SipHash
            java.security.SecureRandom))
 
@@ -39,6 +40,7 @@
   return a new parse tree with the group replaced with the constant string
   value."
   [parsed group-name constant]
+  (log/trace "fixing regex group to constant value" group-name constant)
   (sr/setval*
    (named-group-sel group-name)
    {:type :character :character constant}
@@ -48,6 +50,7 @@
   "Given a test.chuck regex parse tree, find the group with the given name, and
   then fix the length of all repetitions to be exactly the given len."
   [parsed group-name len]
+  (log/trace "fixing regex group to constant length" group-name len)
   (sr/setval*
    [(named-group-sel group-name) ;; Find the parent named group
     RE-PARSE-ELEMS (comp #{:repetition} :type) :bounds]
@@ -129,6 +132,15 @@
         (first)
         (or val))))
 
+(defn ^:private redact-1*
+  "Like redact-1, but with logging."
+  [hash val]
+  (let [redacted (redact-1 hash val)]
+    (if (identical? redacted val)
+      (log/debug "Not redacting value" val)
+      (log/trace "Redacted value" val redacted))
+    redacted))
+
 (defn redact
   "Attempt to automatically redact the structured value."
   ([x]
@@ -136,4 +148,4 @@
   ([x k]
    (let [sh (SipHash. k) ;; Instantiate once for performance benefit.
          hash (fn [v] (->> v nippy/freeze (.hash sh) (.get)))]
-     (sr/transform [TREE-LEAVES string?] (partial redact-1 hash) x))))
+     (sr/transform [TREE-LEAVES string?] (partial redact-1* hash) x))))

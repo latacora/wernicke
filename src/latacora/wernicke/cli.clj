@@ -4,7 +4,8 @@
    [clojure.tools.cli :as cli]
    [clojure.edn :as edn]
    [clojure.string :as str]
-   [latacora.wernicke.core :as wc])
+   [latacora.wernicke.core :as wc]
+   [taoensso.timbre :as log])
   (:gen-class))
 
 (def ^:private parsers
@@ -31,7 +32,7 @@
 
 (def ^:private cli-opts
   [["-h" "--help" "display help message"]
-   ["-v" "--verbose" "verbosity level"
+   ["-v" "--verbose" "increase verbosity"
     :id :verbosity
     :default 0
     :update-fn inc]
@@ -79,11 +80,22 @@
   (binding [*out* *err*] (println message))
   (System/exit code))
 
+(defn verbosity->log-level
+  "Given a verbosity number (0: default, lower is less verbose, higher is more
+  verbose), return a timbre verbosity level."
+  [verbosity]
+  (let [levels [:fatal :error :warn :info :debug :trace]
+        bias (.indexOf levels :info)]
+    (->> verbosity (+ bias) (max 0) (min (dec (count levels))) (get levels))))
+
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
   (let [{:keys [opts exit-message ok]} (validate-args args)
-        {:keys [input-fn output-fn]} opts]
-    (if exit-message
-      (exit! exit-message (if ok 0 1))
-      (-> *in* input-fn wc/redact output-fn))))
+        {:keys [input-fn output-fn verbosity]} opts]
+    (when exit-message (exit! exit-message (if ok 0 1)))
+    (log/set-config!
+     (assoc log/example-config
+            :appenders [(log/println-appender {:stream :*err*})]
+            :level (verbosity->log-level verbosity)))
+    (-> *in* input-fn wc/redact output-fn)))
