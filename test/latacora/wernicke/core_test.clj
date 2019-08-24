@@ -5,9 +5,14 @@
             [latacora.wernicke.patterns-test :refer [arns]]
             [clojure.test :as t]
             [clojure.string :as str]
+            [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
-            [clojure.test.check.clojure-test :as ct]
-            [com.gfredericks.test.chuck.regexes :as cre]))
+            [clojure.test.check.clojure-test :as tct]
+            [com.gfredericks.test.chuck.generators :as gen']
+            [com.gfredericks.test.chuck.regexes :as cre]
+            [com.gfredericks.test.chuck.properties :as prop']
+            [com.gfredericks.test.chuck.clojure-test :as tct']
+            [taoensso.timbre :as log]))
 
 (t/deftest redact-test
   (t/are [x] (= x (#'wc/redact x))
@@ -84,7 +89,7 @@
                                      :elements nil}]}]}
             fixed-alt-pattern)))
 
-(ct/defspec fixed-val-generators-work-as-expected
+(tct/defspec fixed-val-generators-work-as-expected
   (prop/for-all
    [v (cre/analyzed->generator fixed-alt-pattern)]
    (= v "x")))
@@ -109,10 +114,17 @@
                                     :flag [:GroupFlags [:NamedCapturingGroup [:GroupName "a"]]]}]}]}
            fixed-one-to-inf-rep-pattern)))
 
-(ct/defspec fixed-len-generators-work-as-expected
+(tct/defspec fixed-len-generators-work-as-expected
   (prop/for-all
    [v (cre/analyzed->generator fixed-one-to-inf-rep-pattern)]
    (= (count v) 1)))
+
+(tct/defspec regex-redaction-with-groups-preserves-regex-match
+  (tct'/for-all
+   [pattern (->> @#'wc/default-rules (filter ::wc/group-config) (map ::wc/pattern) gen/elements)
+    orig (gen'/string-from-regex pattern)
+    :let [redacted (wc/redact orig)]]
+   (re-matches pattern (log/spy redacted))))
 
 (t/deftest aws-iam-unique-id-tests
   (let [before {:a (str "AKIA" (str/join (repeat 16 "X")))
