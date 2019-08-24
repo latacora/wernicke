@@ -124,7 +124,7 @@
    [pattern (->> @#'wc/default-rules (filter ::wc/group-config) (map ::wc/pattern) gen/elements)
     orig (gen'/string-from-regex pattern)
     :let [redacted (wc/redact orig)]]
-   (re-matches pattern (log/spy redacted))))
+   (re-matches pattern redacted)))
 
 (t/deftest aws-iam-unique-id-tests
   (let [before {:a (str "AKIA" (str/join (repeat 16 "X")))
