@@ -98,4 +98,4 @@
      (assoc log/example-config
             :appenders [(log/println-appender {:stream :*err*})]
             :level (verbosity->log-level verbosity)))
-    (-> *in* input-fn wc/redact output-fn)))
+    (-> *in* input-fn wc/redact! output-fn)))

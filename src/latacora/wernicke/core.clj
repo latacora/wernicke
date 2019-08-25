@@ -141,11 +141,16 @@
       (log/trace "Redacted value" val redacted))
     redacted))
 
-(defn redact
-  "Attempt to automatically redact the structured value."
-  ([x]
-   (redact x (key!)))
-  ([x k]
-   (let [sh (SipHash. k) ;; Instantiate once for performance benefit.
-         hash (fn [v] (->> v nippy/freeze (.hash sh) (.get)))]
-     (sr/transform [TREE-LEAVES string?] (partial redact-1* hash) x))))
+(defn ^:private redact
+  "Redact the structured value under the given key."
+  [x k]
+  (let [sh (SipHash. k) ;; Instantiate once for performance benefit.
+        hash (fn [v] (->> v nippy/freeze (.hash sh) (.get)))]
+    (sr/transform [TREE-LEAVES string?] (partial redact-1* hash) x)))
+
+(defn redact!
+  "Attempt to automatically redact the structured value.
+
+  This is side-effectful because it will generate a new key each time."
+  [x]
+  (redact x (key!)))

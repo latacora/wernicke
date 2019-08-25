@@ -14,13 +14,18 @@
             [com.gfredericks.test.chuck.clojure-test :as tct']
             [taoensso.timbre :as log]))
 
+(t/deftest keygen-test
+  (t/is (-> (#'wc/key!) count (= 16))))
+
+(def zero-key (byte-array 16))
+
 (t/deftest redact-test
-  (t/are [x] (= x (#'wc/redact x))
+  (t/are [x] (= x (#'wc/redact x zero-key))
     {}
     [])
 
   (let [orig-vpc "vpc-12345"
-        {:keys [a b]} (#'wc/redact {:a orig-vpc :b orig-vpc})]
+        {:keys [a b]} (#'wc/redact {:a orig-vpc :b orig-vpc} zero-key)]
     (t/is (= a b))
     (t/is (not= a orig-vpc))))
 
@@ -31,7 +36,7 @@
    :x [:y :z]})
 
 (t/deftest nested-redact-test
-  (let [redacted (#'wc/redact nested)
+  (let [redacted (#'wc/redact nested zero-key)
         [only-in-orig _ in-both] (diff nested redacted)]
     (t/is (= {:a {:b {:d "Constant"}}
               :x [:y :z]}
@@ -58,7 +63,7 @@
                          wp/internal-ec2-hostname-re]]
                        (for [arn arns]
                          [arn wp/arn-re]))
-          :let [after (#'wc/redact before)]]
+          :let [after (#'wc/redact before zero-key)]]
     (t/is (re-matches re before))
     (t/is (re-matches re after))
     (t/is (not= before after))))
@@ -68,9 +73,9 @@
     (t/is (some? rule))))
 
 (t/deftest regex-with-fixed-group-test
-  (let [{:keys [vpc-id sg-id acl-id]} (wc/redact {:vpc-id "vpc-12345"
-                                                  :sg-id "sg-12345"
-                                                  :acl-id "acl-12345"})]
+  (let [{:keys [vpc-id sg-id acl-id]} (wc/redact! {:vpc-id "vpc-12345"
+                                                   :sg-id "sg-12345"
+                                                   :acl-id "acl-12345"})]
     (t/is (str/starts-with? vpc-id "vpc-"))
     (t/is (str/starts-with? sg-id "sg-"))
     (t/is (str/starts-with? acl-id "acl-"))))
@@ -123,13 +128,13 @@
   (tct'/for-all
    [pattern (->> @#'wc/default-rules (filter ::wc/group-config) (map ::wc/pattern) gen/elements)
     orig (gen'/string-from-regex pattern)
-    :let [redacted (wc/redact orig)]]
+    :let [redacted (wc/redact! orig)]]
    (re-matches pattern redacted)))
 
 (t/deftest aws-iam-unique-id-tests
   (let [before {:a (str "AKIA" (str/join (repeat 16 "X")))
                 :b (str "AROA" (str/join (repeat 16 "Y")))}
-        after (wc/redact before)]
+        after (wc/redact! before)]
     (t/is (-> after :a (str/starts-with? "AKIA")))
     (t/is (-> after :b (str/starts-with? "AROA")))
     (t/is (-> after :a count (= 20)))
