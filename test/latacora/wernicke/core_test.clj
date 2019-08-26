@@ -131,6 +131,34 @@
     :let [redacted (wc/redact! orig)]]
    (t/is (re-matches pattern redacted))))
 
+(defn re-group
+  [re s group]
+  (let [m (re-matcher re s)]
+    (when (.matches m)
+      (.group m group))))
+
+(defn count-occurrences
+  [needle haystack]
+  (-> haystack (str/split (re-pattern needle)) count dec))
+
+(tct/defspec no-duplicated-kept-groups
+  (let [kept-groups (->>
+                     (for [{::wc/keys [pattern group-config]} @#'wc/default-rules
+                           :let [kept (for [[group-name config] group-config
+                                            :when (= config ::wc/keep)]
+                                        group-name)]
+                           :when (seq kept)]
+                       [pattern kept])
+                     (into {}))]
+    (tct'/for-all
+     [pattern (-> kept-groups keys gen/elements)
+      fixed-group-name (-> pattern kept-groups gen/elements)
+      orig (-> pattern gen'/string-from-regex)
+      :let [redacted (log/spy (#'wc/redact (log/spy orig) zero-key))
+            redacted-fixed-val (re-group pattern redacted fixed-group-name)]]
+     (t/is (= 1 (count-occurrences redacted-fixed-val redacted)))
+     (t/is (= (re-group pattern orig fixed-group-name) redacted-fixed-val)))))
+
 (t/deftest aws-iam-unique-id-tests
   (let [before {:a (str "AKIA" (str/join (repeat 16 "X")))
                 :b (str "AROA" (str/join (repeat 16 "Y")))}
