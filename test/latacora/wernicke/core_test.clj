@@ -154,7 +154,7 @@
      [pattern (-> kept-groups keys gen/elements)
       fixed-group-name (-> pattern kept-groups gen/elements)
       orig (-> pattern gen'/string-from-regex)
-      :let [redacted (log/spy (#'wc/redact (log/spy orig) zero-key))
+      :let [redacted (#'wc/redact orig zero-key)
             redacted-fixed-val (re-group pattern redacted fixed-group-name)]]
      (t/is (= 1 (count-occurrences redacted-fixed-val redacted)))
      (t/is (= (re-group pattern orig fixed-group-name) redacted-fixed-val)))))
