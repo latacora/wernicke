@@ -8,10 +8,20 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Run tests
-      run: clj -A:test
+      - uses: actions/checkout@v2
+        
+      - uses: DeLaGuardo/setup-graalvm@2.0
+        # alternative for getting regular Java: actions/setup-java@v1
+        with:
+          graalvm-version: '20.0.0.java11'
+
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@2.0
+        
+      - name: Show Clojure env details
+        run: clojure -Sdescribe
+
+      - name: Run tests
+        run: clj -A:test
