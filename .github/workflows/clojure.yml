@@ -1,4 +1,4 @@
-name: Clojure CI
+name: "Clojure CI"
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
       
       - uses: actions/setup-java@v1
         with:
-          java-version: "11"
+          java-version: 11
 
       - name: Setup Clojure
         uses: DeLaGuardo/setup-clojure@2.0
