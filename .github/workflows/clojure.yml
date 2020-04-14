@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         
-      - uses: DeLaGuardo/setup-graalvm@master
+      - uses: DeLaGuardo/setup-graalvm@latest
         # alternative for getting regular Java: actions/setup-java@v1
         with:
           graalvm-version: '20.0.0.java11'
