@@ -19,6 +19,8 @@ jobs:
 
       - name: Setup Clojure
         uses: DeLaGuardo/setup-clojure@2.0
+        with:
+          tools-deps: "latest" 
         
       - name: Show Clojure env details
         run: clojure -Sdescribe
