@@ -1,4 +1,5 @@
-name: "Clojure CI"
+---
+name: CI
 
 on:
   push:
