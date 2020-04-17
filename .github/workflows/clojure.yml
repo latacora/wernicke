@@ -26,4 +26,4 @@ jobs:
         run: clojure -Sdescribe
 
       - name: Run tests
-        run: clj -A:test
+        run: clojure -A:test
