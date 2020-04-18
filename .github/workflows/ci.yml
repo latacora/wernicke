@@ -25,5 +25,11 @@ jobs:
       - name: Show Clojure env details
         run: clojure -Sdescribe
 
+      - name: Lint
+        uses: DeLaGuardo/clojure-lint-action@v1
+        with:
+          clj-kondo-args: --lint src
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Run tests
         run: clojure -A:test
