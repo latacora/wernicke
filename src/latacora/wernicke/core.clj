@@ -10,7 +10,6 @@
   (:require [clojure.test.check.generators :as gen]
             [clojure.test.check.random :as rand]
             [clojure.test.check.rose-tree :as rose]
-            [com.gfredericks.test.chuck.generators :as cgen]
             [com.gfredericks.test.chuck.regexes :as cre]
             [com.rpl.specter :as sr]
             [eidolon.core :as ec :refer [TREE-LEAVES]]

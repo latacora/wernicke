@@ -10,9 +10,7 @@
             [clojure.test.check.clojure-test :as tct]
             [com.gfredericks.test.chuck.generators :as gen']
             [com.gfredericks.test.chuck.regexes :as cre]
-            [com.gfredericks.test.chuck.properties :as prop']
-            [com.gfredericks.test.chuck.clojure-test :as tct']
-            [taoensso.timbre :as log]))
+            [com.gfredericks.test.chuck.clojure-test :as tct']))
 
 (t/deftest keygen-test
   (t/is (-> (#'wc/key!) count (= 16))))
