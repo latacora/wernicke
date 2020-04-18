@@ -1,5 +1,7 @@
 # wernicke
 
+![CI](https://github.com/latacora/wernicke/workflows/CI/badge.svg)
+
 A redaction tool. Run `wernicke` with some JSON on stdin.
 
 Long (>12) keys are redacted:
