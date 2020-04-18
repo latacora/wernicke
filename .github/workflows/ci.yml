@@ -35,7 +35,7 @@ jobs:
       - name: Lint tests
         uses: DeLaGuardo/clojure-lint-action@v1
         with:
-          clj-kondo-args: --lint test
+          clj-kondo-args: --config .clj-kondo/test-config.edn --lint test
           version: '2020.04.05'
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
