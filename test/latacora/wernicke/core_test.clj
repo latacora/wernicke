@@ -17,8 +17,12 @@
 
 (def zero-key (byte-array 16))
 
+(defn redact*
+  [x]
+  (#'wc/redact x zero-key))
+
 (t/deftest redact-test
-  (t/are [x] (= x (#'wc/redact x zero-key))
+  (t/are [x] (= x (redact* x))
     {}
     [])
 
@@ -174,3 +178,11 @@
     (t/is (-> after :a count (= 20)))
     (t/is (-> after :b count (= 20)))
     (t/is (not= before after))))
+
+(t/deftest redact-sensitive-substring-tests
+  (t/testing "single sensitive substring"
+    (let [orig-vpc "vpc-12345"
+          redacted-vpc (redact* orig-vpc)
+          template (partial format "The VPC is %s")]
+      (t/is (= (redact* (template orig-vpc))
+               (template redacted-vpc))))))
