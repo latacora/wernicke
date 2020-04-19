@@ -105,16 +105,24 @@
 
 (t/deftest set-group-length-test
   (t/is (= {:type :alternation
-            :elements [{:type :concatenation
-                        :elements [{:type :group
-                                    :elements [{:type :alternation
-                                                :elements [{:type :concatenation
-                                                            :elements [{:type :repetition
-                                                                        :elements [{:type :character
-                                                                                    :character \x
-                                                                                    :elements nil}]
-                                                                        :bounds [1 1]}]}]}]
-                                    :flag [:GroupFlags [:NamedCapturingGroup [:GroupName "a"]]]}]}]}
+            :elements
+            [{:type :concatenation
+              :elements
+              [{:type :group
+                :elements
+                [{:type :alternation
+                  :elements
+                  [{:type :concatenation
+                    :elements
+                    [{:type :repetition
+                      :elements
+                      [{:type :character
+                        :character \x
+                        :elements nil}]
+                      :bounds [1 1]}]}]}]
+                :flag [:GroupFlags
+                       [:NamedCapturingGroup
+                        [:GroupName "a"]]]}]}]}
            fixed-one-to-inf-rep-pattern)))
 
 (tct/defspec fixed-len-generators-work-as-expected
