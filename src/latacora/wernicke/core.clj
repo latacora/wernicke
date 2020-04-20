@@ -77,9 +77,6 @@
   (let [parsed (-> pattern str cre/parse)]
     (assoc
      rule
-     ;; Unlike [[cgen/string-from-regex]], we're willing to temporarily ignore
-     ;; unsupported features like named groups. That's _generally_ a bug, and we
-     ;; should check for them, but that's blocked on upstream test.chuck work.
      ::generator-fn (fn [val]
                       (let [m (re-matcher pattern val)]
                         (when (.matches m)
