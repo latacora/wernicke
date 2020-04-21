@@ -25,17 +25,10 @@ jobs:
       - name: Show Clojure env details
         run: clojure -Sdescribe
 
-      - name: Lint source
-        uses: DeLaGuardo/clojure-lint-action@v1
+      - name: Lint with clj-kondo
+        uses: DeLaGuardo/clojure-lint-action@master
         with:
-          clj-kondo-args: --lint src
-          version: '2020.04.05'
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Lint tests
-        uses: DeLaGuardo/clojure-lint-action@v1
-        with:
-          clj-kondo-args: --config .clj-kondo/test-config.edn --lint test
+          clj-kondo-args: --lint src test
           version: '2020.04.05'
           github_token: ${{ secrets.GITHUB_TOKEN }}
 

@@ -1,4 +1,5 @@
 (ns latacora.wernicke.core-test
+  {:clj-kondo/config {:linters {:private-call {:level :off}}}}
   (:require [clojure.data :refer [diff]]
             [latacora.wernicke.core :as wc]
             [latacora.wernicke.patterns :as wp]
