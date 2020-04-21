@@ -16,7 +16,9 @@
             [latacora.wernicke.patterns :as p]
             [taoensso.nippy :as nippy]
             [clojure.spec.alpha :as s]
-            [taoensso.timbre :as log])
+            [taoensso.timbre :as log]
+            [clojure.string :as str]
+            [clojure.core.match :as m])
   (:import com.zackehh.siphash.SipHash
            java.security.SecureRandom))
 
@@ -33,6 +35,20 @@
   [RE-PARSE-ELEMS
    (comp #{:group} :type)
    (comp #{[:GroupFlags [:NamedCapturingGroup [:GroupName group-name]]]} :flag)])
+
+(def ^:private GROUP-NAMES
+  "Gets all of the group names in a parsed regex tree."
+  [RE-PARSE-ELEMS
+   (comp #{:group} :type)
+   :flag
+   ;; Could use core.unify here I guess but I like match :shrug:
+   (sr/view
+    (fn [flag]
+      (m/match
+       [flag]
+       [[:GroupFlags [:NamedCapturingGroup [:GroupName n]]]] n
+       :else nil)))
+   some?])
 
 (defn ^:private set-group-value
   "Given a test.chuck regex parse tree, find the group with the given name, and
@@ -62,14 +78,15 @@
 (defn ^:private apply-group-behavior
   "Apply all of the behaviors specified in the group config to this test.chuck
   regex parse tree."
-  [parsed group-config ^java.util.regex.Matcher m]
+  [parsed group-config named-groups]
   (reduce
    (fn [parsed [group-name behavior]]
-     (let [actual (.group m ^java.lang.String group-name)]
+     (let [actual (named-groups group-name)]
        (case behavior
          ::keep (set-group-value parsed group-name actual)
          ::keep-length (set-group-length parsed group-name (count actual)))))
-   parsed group-config))
+   parsed
+   group-config))
 
 (defmulti compile-rule ::type)
 (defmethod compile-rule ::regex
@@ -77,12 +94,8 @@
   (let [parsed (-> pattern str cre/parse)]
     (assoc
      rule
-     ::generator-fn (fn [val]
-                      (let [m (re-matcher pattern val)]
-                        (when (.matches m)
-                          (-> parsed
-                              (apply-group-behavior group-config m)
-                              (cre/analyzed->generator))))))))
+     ::parsed-pattern parsed
+     ::group-names (sr/select [GROUP-NAMES] parsed))))
 
 (defn regex-rule
   "Given a regex and optional ops, produce a compiled rule."
@@ -93,9 +106,6 @@
 
 (def pattern? (partial instance? java.util.regex.Pattern))
 (s/def ::pattern pattern?)
-
-(def generator-fn? some?)
-(s/def ::generator-fn generator-fn?)
 
 (defn ^:private key!
   "Generate a new SipHash key."
@@ -117,16 +127,22 @@
    (regex-rule #"(?<s>[A-Za-z0-9]{12,})" {::group-config {"s" ::keep-length}})])
 
 (defn ^:private redact-1
-  "Redacts a single item, assuming it is redactable."
-  [hash val]
-  (let [rnd (-> val hash rand/make-random)]
-    (-> (eduction
-         (map (fn [{::keys [generator-fn]}]
-                (some-> val generator-fn (gen/call-gen rnd 1) rose/root)))
-         (filter some?)
-         default-rules)
-        (first)
-        (or val))))
+  "Redacts a string if has substrings to redact."
+  [hash string-to-redact]
+  (reduce
+   (fn [s {::keys [pattern parsed-pattern group-names group-config fallback-only?]}]
+     (str/replace
+      s pattern
+      (fn [[match & groups]]
+        (let [named-groups (zipmap group-names groups)
+              rnd (-> match hash rand/make-random)]
+          (-> parsed-pattern
+              (apply-group-behavior group-config named-groups)
+              (cre/analyzed->generator)
+              (gen/call-gen rnd 1)
+              rose/root)))))
+   string-to-redact
+   default-rules))
 
 (defn ^:private redact-1*
   "Like redact-1, but with logging."
