@@ -1,3 +1,0 @@
-{:linters
- ;; tests are allowed to manipulate private vars
- {:private-call {:level :off}}}
