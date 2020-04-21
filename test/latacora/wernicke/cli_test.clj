@@ -1,8 +1,10 @@
 (ns latacora.wernicke.cli-test
-  (:require [latacora.wernicke.cli :as cli]
-            [clojure.test :as t]
-            [clojure.string :as str]
-            [cheshire.core :as json]))
+  {:clj-kondo/config {:linters {:private-call {:level :off}}}}
+  (:require
+   [latacora.wernicke.cli :as cli]
+   [clojure.test :as t]
+   [clojure.string :as str]
+   [cheshire.core :as json]))
 
 (t/deftest verbosity->log-level-tests
   (t/are [n expected] (= (cli/verbosity->log-level n) expected)
