@@ -194,4 +194,10 @@
           redacted-sg (redact* orig-sg)
           template (partial format "The VPC is %s and the SG is %s")]
       (t/is (= (redact* (template orig-vpc orig-sg))
-               (template redacted-vpc redacted-sg))))))
+               (template redacted-vpc redacted-sg)))))
+
+  (t/testing "multiple identical sensitive substrings"
+    (let [orig-vpc "vpc-12345"
+          redacted-vpc (redact* orig-vpc)
+          template (fn [s] (format "The VPC is %s. I repeat, the VPC is %s." s s))]
+      (t/is (= (redact* (template orig-vpc)) (template redacted-vpc))))))
