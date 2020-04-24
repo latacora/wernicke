@@ -130,7 +130,7 @@
   "Redacts a string if has substrings to redact."
   [hash string-to-redact]
   (reduce
-   (fn [s {::keys [pattern parsed-pattern group-names group-config fallback-only?]}]
+   (fn [s {::keys [pattern parsed-pattern group-names group-config]}]
      (str/replace
       s pattern
       (fn [[match & groups]]
