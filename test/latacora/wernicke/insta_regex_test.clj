@@ -25,6 +25,7 @@
 (tct/defspec instaparse-equivalents-match-regexes
   (tct'/for-all
    [regex (gen/elements test-patterns)
-    s (gen'/string-from-regex regex)]
-   ;; TODO: write test ensuring that the resulting parser has the correct named groups
-   (t/is (some? (i/parse (ir/parser regex) s)))))
+    s (gen'/string-from-regex regex)
+    :let [grammar-map (ir/grammar-map regex)
+          parser (i/parser grammar-map :start :root)]]
+   (t/is (some? (i/parse parser s)))))

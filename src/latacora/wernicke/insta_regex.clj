@@ -59,10 +59,11 @@
      parsed
      :merge-fn merge)))
 
-(defn parser
-  "Given a regex (string or pattern), parse it into an Instaparse parser."
+(defn grammar-map
+  "Given a regex (string or pattern), parse it into an Instaparse grammar map.
+
+  The root of the grammar map will have the keyword `:root`. Each named group in
+  the regex will have a grammar entry with the keyword of the same name."
   [regex]
   (let [[root rules] (convert regex)]
-    (-> rules
-        (assoc :S root)
-        (i/parser :start :S))))
+    (assoc rules :root root)))
