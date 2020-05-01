@@ -104,6 +104,20 @@
   ([pattern opts]
    (compile-rule (assoc opts ::type ::regex ::pattern pattern))))
 
+(defmacro regex-rule*
+  "Like [[regex-rule]] but automatically sets the name based on the sym."
+  ([pattern-sym]
+   `(regex-rule* ~pattern-sym nil))
+  ([pattern-sym opts]
+   (let [var-meta (-> 'p/timestamp-re resolve meta)]
+     `(compile-rule
+       (assoc ~opts
+              ::name ~(keyword
+                       (-> var-meta :ns ns-name name)
+                       (-> var-meta :name name))
+              ::type ::regex
+              ::pattern ~pattern-sym)))))
+
 (def pattern? (partial instance? java.util.regex.Pattern))
 (s/def ::pattern pattern?)
 
@@ -115,16 +129,16 @@
     k))
 
 (def ^:private default-rules
-  [(regex-rule p/timestamp-re)
-   (regex-rule p/mac-colon-re)
-   (regex-rule p/mac-dash-re)
-   (regex-rule p/ipv4-re)
-   (regex-rule p/aws-iam-unique-id-re {::group-config {"type" ::keep "id" ::keep-length}})
-   (regex-rule p/internal-ec2-hostname-re)
-   (regex-rule p/arn-re)
-   (regex-rule p/aws-resource-id-re {::group-config {"type" ::keep "id" ::keep-length}})
-   (regex-rule p/long-decimal-re)
-   (regex-rule #"(?<s>[A-Za-z0-9]{12,})" {::group-config {"s" ::keep-length}})])
+  [(regex-rule* p/timestamp-re)
+   (regex-rule* p/mac-colon-re)
+   (regex-rule* p/mac-dash-re)
+   (regex-rule* p/ipv4-re)
+   (regex-rule* p/aws-iam-unique-id-re {::group-config {"type" ::keep "id" ::keep-length}})
+   (regex-rule* p/internal-ec2-hostname-re)
+   (regex-rule* p/arn-re)
+   (regex-rule* p/aws-resource-id-re {::group-config {"type" ::keep "id" ::keep-length}})
+   (regex-rule* p/long-decimal-re)
+   (regex-rule* p/long-alphanumeric-re {::group-config {"s" ::keep-length}})])
 
 (defn ^:private redact-1
   "Redacts a string if has substrings to redact."
