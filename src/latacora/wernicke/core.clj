@@ -13,7 +13,7 @@
    [clojure.test.check.rose-tree :as rose]
    [com.gfredericks.test.chuck.regexes :as cre]
    [com.rpl.specter :as sr]
-   [eidolon.core :as ec :refer [TREE-LEAVES]]
+   [eidolon.core :as ec]
    [latacora.wernicke.patterns :as p]
    [taoensso.nippy :as nippy]
    [clojure.spec.alpha :as s]
@@ -38,20 +38,6 @@
   [RE-PARSE-ELEMS
    (comp #{:group} :type)
    (comp #{[:GroupFlags [:NamedCapturingGroup [:GroupName group-name]]]} :flag)])
-
-(def ^:private GROUP-NAMES
-  "Gets all of the group names in a parsed regex tree."
-  [RE-PARSE-ELEMS
-   (comp #{:group} :type)
-   :flag
-   ;; Could use core.unify here I guess but I like match :shrug:
-   (sr/view
-    (fn [flag]
-      (m/match
-       [flag]
-       [[:GroupFlags [:NamedCapturingGroup [:GroupName n]]]] n
-       :else nil)))
-   some?])
 
 (defn ^:private set-group-value
   "Given a test.chuck regex parse tree, find the group with the given name, and
@@ -97,8 +83,7 @@
   (let [parsed (-> pattern str cre/parse)]
     (assoc
      rule
-     ::parsed-pattern parsed
-     ::group-names (sr/select [GROUP-NAMES] parsed))))
+     ::parsed-pattern parsed)))
 
 (defn regex-rule
   "Given a regex and optional ops, produce a compiled rule."
@@ -186,7 +171,7 @@
   [x k]
   (let [sh (SipHash. k) ;; Instantiate once for performance benefit.
         hash (fn [v] (->> v nippy/freeze (.hash sh) (.get)))]
-    (sr/transform [TREE-LEAVES string?] (partial redact-1* hash) x)))
+    (sr/transform [ec/TREE-LEAVES string?] (partial redact-1* hash) x)))
 
 (defn redact!
   "Attempt to automatically redact the structured value.
@@ -194,7 +179,3 @@
   This is side-effectful because it will generate a new key each time."
   [x]
   (redact x (key!)))
-
-(comment
-  (set! *warn-on-reflection* true)
-  (redact! "sg-12345"))
