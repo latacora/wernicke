@@ -13,10 +13,18 @@
   "A navigator for all the parsed elements in a test.chuck regex parse tree in post-order.
 
   Stops at each regex part and recursively navigates down into every element."
-  ;; TODO: see if the other uses of RE-PARSE-ELEMS still need this and still need it in a specific order
+  ;; TODO: see if the other uses of RE-PARSE-ELEMS still need this and still
+  ;; need it in a specific order. My guess is no; we just need to find groups
+  ;; now for adjusting them but we don't need them in any particular order. The
+  ;; reason we need order is that re-seq and friends will only return groups in
+  ;; a particular order, and we no longer use that (and instaparse returns named
+  ;; matches).
   (sr/recursive-path [] p [(sr/continue-then-stay :elements sr/ALL p)]))
 
 (defn ^:private convert
+  "Given a regex Pattern object (or string representing a regex), convert it into
+  [root, rules] where root is a root rule and rules are a grammar map of named
+  rules."
   [regex]
   (let [regex (str regex) ;; might be a pattern
         parsed (cre/parse regex)]
@@ -37,7 +45,7 @@
 
          :class
          ;; classes are quite complicated and can't themselves be (named)
-         ;; groups, which is the entire point of this parser; so we delegate
+         ;; groups, which are the entire point of this parser; so we delegate
          ;; them to the actual regex implementation
          [(->> re-part i/span (apply subs regex) re-pattern ic/regexp)
           nil]
