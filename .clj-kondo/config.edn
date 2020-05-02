@@ -1,7 +1,7 @@
 {:linters
  {:unresolved-symbol
   {:exclude [(com.rpl.specter/recursive-path [p])
-             (clojure.core.match)]}}
+             (clojure.core.match/match)]}}
  :lint-as
  {com.gfredericks.test.chuck.clojure-test/for-all clojure.core/for
   clojure.test.check.properties/for-all clojure.core/for
