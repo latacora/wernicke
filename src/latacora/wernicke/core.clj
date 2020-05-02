@@ -7,18 +7,23 @@
   redacted to a string of the same length as a failsafe. Finally, only leaf
   values will be redacted; the key `PrivateIpAddresses` should not be redacted
   even though its value should be."
-  (:require [clojure.test.check.generators :as gen]
-            [clojure.test.check.random :as rand]
-            [clojure.test.check.rose-tree :as rose]
-            [com.gfredericks.test.chuck.regexes :as cre]
-            [com.rpl.specter :as sr]
-            [eidolon.core :as ec :refer [TREE-LEAVES]]
-            [latacora.wernicke.patterns :as p]
-            [taoensso.nippy :as nippy]
-            [clojure.spec.alpha :as s]
-            [taoensso.timbre :as log])
-  (:import com.zackehh.siphash.SipHash
-           java.security.SecureRandom))
+  (:require
+   [clojure.test.check.generators :as gen]
+   [clojure.test.check.random :as rand]
+   [clojure.test.check.rose-tree :as rose]
+   [com.gfredericks.test.chuck.regexes :as cre]
+   [com.rpl.specter :as sr]
+   [eidolon.core :as ec]
+   [latacora.wernicke.patterns :as p]
+   [taoensso.nippy :as nippy]
+   [clojure.spec.alpha :as s]
+   [taoensso.timbre :as log]
+   [clojure.core.match :as m])
+  (:import
+   com.zackehh.siphash.SipHash
+   java.security.SecureRandom
+   java.util.BitSet
+   java.util.function.Function))
 
 (def ^:private RE-PARSE-ELEMS
   "A navigator for all the parsed elements in a test.chuck regex parse tree.
@@ -62,30 +67,23 @@
 (defn ^:private apply-group-behavior
   "Apply all of the behaviors specified in the group config to this test.chuck
   regex parse tree."
-  [parsed group-config ^java.util.regex.Matcher m]
+  [parsed group-config matcher]
   (reduce
    (fn [parsed [group-name behavior]]
-     (let [actual (.group m ^java.lang.String group-name)]
+     (let [actual (.group matcher group-name)]
        (case behavior
          ::keep (set-group-value parsed group-name actual)
          ::keep-length (set-group-length parsed group-name (count actual)))))
-   parsed group-config))
+   parsed
+   group-config))
 
 (defmulti compile-rule ::type)
 (defmethod compile-rule ::regex
-  [{::keys [pattern group-config] :as rule}]
+  [{::keys [pattern] :as rule}]
   (let [parsed (-> pattern str cre/parse)]
     (assoc
      rule
-     ;; Unlike [[cgen/string-from-regex]], we're willing to temporarily ignore
-     ;; unsupported features like named groups. That's _generally_ a bug, and we
-     ;; should check for them, but that's blocked on upstream test.chuck work.
-     ::generator-fn (fn [val]
-                      (let [m (re-matcher pattern val)]
-                        (when (.matches m)
-                          (-> parsed
-                              (apply-group-behavior group-config m)
-                              (cre/analyzed->generator))))))))
+     ::parsed-pattern parsed)))
 
 (defn regex-rule
   "Given a regex and optional ops, produce a compiled rule."
@@ -94,11 +92,19 @@
   ([pattern opts]
    (compile-rule (assoc opts ::type ::regex ::pattern pattern))))
 
+(defmacro regex-rule*
+  "Like [[regex-rule]] but automatically sets the name based on the sym."
+  ([pattern-sym]
+   `(regex-rule* ~pattern-sym nil))
+  ([pattern-sym opts]
+   (let [var-meta (-> pattern-sym resolve meta)]
+     `(regex-rule ~pattern-sym
+                  (assoc ~opts
+                         ::name ~(keyword (-> var-meta :ns ns-name name)
+                                          (-> var-meta :name name)))))))
+
 (def pattern? (partial instance? java.util.regex.Pattern))
 (s/def ::pattern pattern?)
-
-(def generator-fn? some?)
-(s/def ::generator-fn generator-fn?)
 
 (defn ^:private key!
   "Generate a new SipHash key."
@@ -108,28 +114,48 @@
     k))
 
 (def ^:private default-rules
-  [(regex-rule p/timestamp-re)
-   (regex-rule p/mac-colon-re)
-   (regex-rule p/mac-dash-re)
-   (regex-rule p/ipv4-re)
-   (regex-rule p/aws-iam-unique-id-re {::group-config {"type" ::keep "id" ::keep-length}})
-   (regex-rule p/internal-ec2-hostname-re)
-   (regex-rule p/arn-re)
-   (regex-rule p/aws-resource-id-re {::group-config {"type" ::keep "id" ::keep-length}})
-   (regex-rule p/long-decimal-re)
-   (regex-rule #"(?<s>[A-Za-z0-9]{12,})" {::group-config {"s" ::keep-length}})])
+  [(regex-rule* p/timestamp-re)
+   (regex-rule* p/mac-colon-re)
+   (regex-rule* p/mac-dash-re)
+   (regex-rule* p/ipv4-re)
+   (regex-rule* p/aws-iam-unique-id-re {::group-config {"type" ::keep "id" ::keep-length}})
+   (regex-rule* p/internal-ec2-hostname-re)
+   (regex-rule* p/arn-re)
+   (regex-rule* p/aws-resource-id-re {::group-config {"type" ::keep "id" ::keep-length}})
+   (regex-rule* p/long-decimal-re)
+   (regex-rule* p/long-alphanumeric-re {::group-config {"s" ::keep-length}})])
+
+(defn ^Function ->Function
+  [f]
+  (reify Function
+    (apply [this arg] (f arg))))
 
 (defn ^:private redact-1
-  "Redacts a single item, assuming it is redactable."
-  [hash val]
-  (let [rnd (-> val hash rand/make-random)]
-    (-> (eduction
-         (map (fn [{::keys [generator-fn]}]
-                (some-> val generator-fn (gen/call-gen rnd 1) rose/root)))
-         (filter some?)
-         default-rules)
-        (first)
-        (or val))))
+  [hash string-to-redact]
+  (let [cover (BitSet. (count string-to-redact))]
+    (reduce
+     (fn [s {::keys [pattern parsed-pattern group-config]}]
+       (.replaceAll
+        ^java.util.regex.Matcher (re-matcher pattern s)
+        ^Function
+        (->Function
+         ;; The API only promises a MatchResult, not a Matcher, but in practice
+         ;; it always is, and Matcher implements the named group API we want.
+         (fn [^java.util.regex.Matcher mr]
+           (let [start (.start mr)
+                 end (.end mr)
+                 match (.group mr)]
+             (if-not (-> cover (.get start end) .isEmpty)
+               match
+               (let [rnd (-> match hash rand/make-random)]
+                 (.set cover start end true)
+                 (-> parsed-pattern
+                     (apply-group-behavior group-config mr)
+                     (cre/analyzed->generator)
+                     (gen/call-gen rnd 1)
+                     rose/root))))))))
+     string-to-redact
+     default-rules)))
 
 (defn ^:private redact-1*
   "Like redact-1, but with logging."
@@ -145,7 +171,7 @@
   [x k]
   (let [sh (SipHash. k) ;; Instantiate once for performance benefit.
         hash (fn [v] (->> v nippy/freeze (.hash sh) (.get)))]
-    (sr/transform [TREE-LEAVES string?] (partial redact-1* hash) x)))
+    (sr/transform [ec/TREE-LEAVES string?] (partial redact-1* hash) x)))
 
 (defn redact!
   "Attempt to automatically redact the structured value.
