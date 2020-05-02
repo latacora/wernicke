@@ -17,8 +17,7 @@
    [latacora.wernicke.patterns :as p]
    [taoensso.nippy :as nippy]
    [clojure.spec.alpha :as s]
-   [taoensso.timbre :as log]
-   [clojure.core.match :as m])
+   [taoensso.timbre :as log])
   (:import
    com.zackehh.siphash.SipHash
    java.security.SecureRandom
