@@ -7,20 +7,21 @@
   redacted to a string of the same length as a failsafe. Finally, only leaf
   values will be redacted; the key `PrivateIpAddresses` should not be redacted
   even though its value should be."
-  (:require [clojure.test.check.generators :as gen]
-            [clojure.test.check.random :as rand]
-            [clojure.test.check.rose-tree :as rose]
-            [com.gfredericks.test.chuck.regexes :as cre]
-            [com.rpl.specter :as sr]
-            [eidolon.core :as ec :refer [TREE-LEAVES]]
-            [latacora.wernicke.patterns :as p]
-            [taoensso.nippy :as nippy]
-            [clojure.spec.alpha :as s]
-            [taoensso.timbre :as log]
-            [clojure.string :as str]
-            [clojure.core.match :as m])
-  (:import com.zackehh.siphash.SipHash
-           java.security.SecureRandom))
+  (:require
+   [clojure.test.check.generators :as gen]
+   [clojure.test.check.random :as rand]
+   [clojure.test.check.rose-tree :as rose]
+   [com.gfredericks.test.chuck.regexes :as cre]
+   [com.rpl.specter :as sr]
+   [eidolon.core :as ec :refer [TREE-LEAVES]]
+   [latacora.wernicke.patterns :as p]
+   [taoensso.nippy :as nippy]
+   [clojure.spec.alpha :as s]
+   [taoensso.timbre :as log]
+   [clojure.string :as str])
+  (:import
+   com.zackehh.siphash.SipHash
+   java.security.SecureRandom))
 
 (def ^:private RE-PARSE-ELEMS
   "A navigator for all the parsed elements in a test.chuck regex parse tree.

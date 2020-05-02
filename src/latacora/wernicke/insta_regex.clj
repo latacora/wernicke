@@ -3,9 +3,7 @@
    [instaparse.core :as i]
    [instaparse.combinators :as ic]
    [com.gfredericks.test.chuck.regexes :as cre]
-   [taoensso.timbre :refer [spy]]
    [com.rpl.specter :as sr]
-   [eidolon.core :as ec]
    [clojure.core.match :as m]
    [clojure.string :as str]))
 
