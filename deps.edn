@@ -9,8 +9,7 @@
         cheshire/cheshire {:mvn/version "5.9.0"}
         org.clojure/tools.cli {:mvn/version "0.4.2"}
         com.taoensso/timbre {:mvn/version "4.10.0"}
-        org.clojure/core.match {:mvn/version "1.0.0"}
-        instaparse {:mvn/version "1.4.10"}}
+        org.clojure/core.match {:mvn/version "1.0.0"}}
 
  :aliases
  {:test {:main-opts ["-m" "kaocha.runner"]

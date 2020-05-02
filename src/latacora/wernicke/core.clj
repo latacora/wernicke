@@ -18,10 +18,12 @@
    [taoensso.nippy :as nippy]
    [clojure.spec.alpha :as s]
    [taoensso.timbre :as log]
-   [clojure.string :as str])
+   [clojure.core.match :as m])
   (:import
    com.zackehh.siphash.SipHash
-   java.security.SecureRandom))
+   java.security.SecureRandom
+   java.util.BitSet
+   java.util.function.Function))
 
 (def ^:private RE-PARSE-ELEMS
   "A navigator for all the parsed elements in a test.chuck regex parse tree.
@@ -79,10 +81,10 @@
 (defn ^:private apply-group-behavior
   "Apply all of the behaviors specified in the group config to this test.chuck
   regex parse tree."
-  [parsed group-config named-groups]
+  [parsed group-config matcher]
   (reduce
    (fn [parsed [group-name behavior]]
-     (let [actual (named-groups group-name)]
+     (let [actual (.group matcher group-name)]
        (case behavior
          ::keep (set-group-value parsed group-name actual)
          ::keep-length (set-group-length parsed group-name (count actual)))))
@@ -91,7 +93,7 @@
 
 (defmulti compile-rule ::type)
 (defmethod compile-rule ::regex
-  [{::keys [pattern group-config] :as rule}]
+  [{::keys [pattern] :as rule}]
   (let [parsed (-> pattern str cre/parse)]
     (assoc
      rule
@@ -110,14 +112,11 @@
   ([pattern-sym]
    `(regex-rule* ~pattern-sym nil))
   ([pattern-sym opts]
-   (let [var-meta (-> 'p/timestamp-re resolve meta)]
-     `(compile-rule
-       (assoc ~opts
-              ::name ~(keyword
-                       (-> var-meta :ns ns-name name)
-                       (-> var-meta :name name))
-              ::type ::regex
-              ::pattern ~pattern-sym)))))
+   (let [var-meta (-> pattern-sym resolve meta)]
+     `(regex-rule ~pattern-sym
+                  (assoc ~opts
+                         ::name ~(keyword (-> var-meta :ns ns-name name)
+                                          (-> var-meta :name name)))))))
 
 (def pattern? (partial instance? java.util.regex.Pattern))
 (s/def ::pattern pattern?)
@@ -141,23 +140,37 @@
    (regex-rule* p/long-decimal-re)
    (regex-rule* p/long-alphanumeric-re {::group-config {"s" ::keep-length}})])
 
+(defn ^Function ->Function
+  [f]
+  (reify Function
+    (apply [this arg] (f arg))))
+
 (defn ^:private redact-1
-  "Redacts a string if has substrings to redact."
   [hash string-to-redact]
-  (reduce
-   (fn [s {::keys [pattern parsed-pattern group-names group-config]}]
-     (str/replace
-      s pattern
-      (fn [[match & groups]]
-        (let [named-groups (zipmap group-names groups)
-              rnd (-> match hash rand/make-random)]
-          (-> parsed-pattern
-              (apply-group-behavior group-config named-groups)
-              (cre/analyzed->generator)
-              (gen/call-gen rnd 1)
-              rose/root)))))
-   string-to-redact
-   default-rules))
+  (let [cover (BitSet. (count string-to-redact))]
+    (reduce
+     (fn [s {::keys [pattern parsed-pattern group-config]}]
+       (.replaceAll
+        ^java.util.regex.Matcher (re-matcher pattern s)
+        ^Function
+        (->Function
+         ;; The API only promises a MatchResult, not a Matcher, but in practice
+         ;; it always is, and Matcher implements the named group API we want.
+         (fn [^java.util.regex.Matcher mr]
+           (let [start (.start mr)
+                 end (.end mr)
+                 match (.group mr)]
+             (if-not (-> cover (.get start end) .isEmpty)
+               match
+               (let [rnd (-> match hash rand/make-random)]
+                 (.set cover start end true)
+                 (-> parsed-pattern
+                     (apply-group-behavior group-config mr)
+                     (cre/analyzed->generator)
+                     (gen/call-gen rnd 1)
+                     rose/root))))))))
+     string-to-redact
+     default-rules)))
 
 (defn ^:private redact-1*
   "Like redact-1, but with logging."
@@ -181,3 +194,7 @@
   This is side-effectful because it will generate a new key each time."
   [x]
   (redact x (key!)))
+
+(comment
+  (set! *warn-on-reflection* true)
+  (redact! "sg-12345"))
