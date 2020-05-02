@@ -33,6 +33,10 @@
 (def long-decimal-re
   #"[0-9]{5,}")
 
+(def long-alphanumeric-re
+  "A regex for long (12+) alphanumeric strings."
+  #"(?<s>[A-Za-z0-9]{12,})")
+
 (def internal-ec2-hostname-re
   (let [ip-part (str/join "-" (repeat 4 ipv4-octet-re))
         suffix "\\.ec2\\.internal"]
