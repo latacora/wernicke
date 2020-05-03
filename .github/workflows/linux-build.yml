@@ -1,0 +1,47 @@
+---
+name: macOS build
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup GraalVM CE
+        uses: DeLaGuardo/setup-graalvm@3
+        with:
+          # https://github.com/oracle/graal/issues/2177
+          graalvm-version: '19.3.0.java11'
+
+      - name: Setup native-image
+        run: |
+          gu install native-image
+
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@2.0
+        with:
+          tools-deps: "latest"
+
+      - name: Show Clojure env details
+        run: clojure -Sdescribe
+
+      - name: Run tests
+        run: clojure -A:test
+
+      - name: Install upx
+        run: apt install upx
+
+      - name: Build native-image
+        run: clojure -A:native-image
+
+      - name: Run upx
+        run: upx wernicke
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: wernicke-linux-amd64
+          path: wernicke
