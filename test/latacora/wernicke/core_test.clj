@@ -202,3 +202,20 @@
           template (fn [s] (format "The VPC is %s. I repeat, the VPC is %s." s s))]
       (t/is (= (template redacted-vpc)
                (redact* (template orig-vpc)))))))
+
+(t/deftest redact-within-keys-tests
+  (t/testing "sensitive key, non sensitive value"
+    (let [orig-vpc "vpc-12345"
+          redacted-vpc (redact* orig-vpc)
+          template (fn [vpc-id] {"instance_counts" {vpc-id 1}})]
+      (t/is (= (template redacted-vpc)
+               (redact* (template orig-vpc))))))
+
+  (t/testing "sensitive key, sensitive value"
+    (let [orig-vpc "vpc-12345"
+          orig-ec2 "i-abcdef"
+          redacted-vpc (redact* orig-vpc)
+          redacted-ec2 (redact* orig-ec2)
+          template (fn [vpc-id ec2-id] {"vpc_map" {ec2-id vpc-id}})]
+      (t/is (= (template redacted-vpc redacted-ec2)
+               (redact* (template orig-vpc orig-ec2)))))))
