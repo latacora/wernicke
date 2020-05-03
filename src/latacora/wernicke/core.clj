@@ -126,7 +126,7 @@
    (regex-rule* p/long-decimal-re)
    (regex-rule* p/long-alphanumeric-re {::group-config {"s" ::keep-length}})])
 
-(defn ^Function ->Function
+(defn ^Function ^:private ->Function
   [f]
   (reify Function
     (apply [this arg] (f arg))))
