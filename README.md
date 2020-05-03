@@ -44,6 +44,8 @@ Long (>12 chars) keys are redacted.
 </td>
 </tr>
 
+<tr></tr>
+
 <tr>
 <td colspan="2">
 IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types of strings are redacted to strings of the same type: IPs to IPs, SGs to SGs, et cetera. If these strings have an alphanumeric id, that id will have the same length.
