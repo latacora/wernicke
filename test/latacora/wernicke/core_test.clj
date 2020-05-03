@@ -184,8 +184,8 @@
     (let [orig-vpc "vpc-12345"
           redacted-vpc (redact* orig-vpc)
           template (partial format "The VPC is %s")]
-      (t/is (= (redact* (template orig-vpc))
-               (template redacted-vpc)))))
+      (t/is (= (template redacted-vpc)
+               (redact* (template orig-vpc))))))
 
   (t/testing "multiple different sensitive substrings"
     (let [orig-vpc "vpc-12345"
@@ -193,11 +193,29 @@
           orig-sg "sg-12345"
           redacted-sg (redact* orig-sg)
           template (partial format "The VPC is %s and the SG is %s")]
-      (t/is (= (redact* (template orig-vpc orig-sg))
-               (template redacted-vpc redacted-sg)))))
+      (t/is (= (template redacted-vpc redacted-sg)
+               (redact* (template orig-vpc orig-sg))))))
 
   (t/testing "multiple identical sensitive substrings"
     (let [orig-vpc "vpc-12345"
           redacted-vpc (redact* orig-vpc)
           template (fn [s] (format "The VPC is %s. I repeat, the VPC is %s." s s))]
-      (t/is (= (redact* (template orig-vpc)) (template redacted-vpc))))))
+      (t/is (= (template redacted-vpc)
+               (redact* (template orig-vpc)))))))
+
+(t/deftest redact-within-keys-tests
+  (t/testing "sensitive key, non sensitive value"
+    (let [orig-vpc "vpc-12345"
+          redacted-vpc (redact* orig-vpc)
+          template (fn [vpc-id] {"instance_counts" {vpc-id 1}})]
+      (t/is (= (template redacted-vpc)
+               (redact* (template orig-vpc))))))
+
+  (t/testing "sensitive key, sensitive value"
+    (let [orig-vpc "vpc-12345"
+          orig-ec2 "i-abcdef"
+          redacted-vpc (redact* orig-vpc)
+          redacted-ec2 (redact* orig-ec2)
+          template (fn [vpc-id ec2-id] {"vpc_map" {ec2-id vpc-id}})]
+      (t/is (= (template redacted-vpc redacted-ec2)
+               (redact* (template orig-vpc orig-ec2)))))))

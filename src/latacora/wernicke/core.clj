@@ -126,7 +126,7 @@
    (regex-rule* p/long-decimal-re)
    (regex-rule* p/long-alphanumeric-re {::group-config {"s" ::keep-length}})])
 
-(defn ^Function ->Function
+(defn ^Function ^:private ->Function
   [f]
   (reify Function
     (apply [this arg] (f arg))))
@@ -172,7 +172,9 @@
   [x k]
   (let [sh (SipHash. k) ;; Instantiate once for performance benefit.
         hash (fn [v] (->> v nippy/freeze (.hash sh) (.get)))]
-    (sr/transform [ec/TREE-LEAVES string?] (partial redact-1* hash) x)))
+    (sr/transform
+     [(sr/multi-path ec/TREE-LEAVES ec/TREE-KEYS) string?]
+     (partial redact-1* hash) x)))
 
 (defn redact!
   "Attempt to automatically redact the structured value.
