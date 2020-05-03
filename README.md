@@ -22,10 +22,11 @@ Long (>12 chars) keys are redacted.
 </td>
 </tr>
 
-<th>
-<td>Example input</td>
-<td>Example output</td>
-</th>
+<tr>
+<th>Example input</th>
+<th>Example output</th>
+</tr>
+
 <tr>
 <td>
 
@@ -49,10 +50,10 @@ IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types o
 </td>
 </tr>
 
-<th>
-<td>Example input</td>
-<td>Example output</td>
-</th>
+<tr>
+<th>Example input</th>
+<th>Example output</th>
+</tr>
 
 <tr>
 <td>
@@ -93,10 +94,11 @@ IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types o
 <td colspan="2">
 Redaction happens in arbitrarily nested structures.
 </td>
-<th>
-<td>Example input</td>
-<td>Example output</td>
-</th>
+
+<tr>
+<th>Example input</th>
+<th>Example output</th>
+</tr>
 
 <tr>
 <td>
@@ -141,10 +143,10 @@ The redacted values will change across runs (this is necessary to make redaction
 irreversible).
 </td>
 
-<th>
-<td>Example input</td>
-<td>Example output</td>
-</th>
+<tr>
+<th>Example input</th>
+<th>Example output</th>
+</tr>
 
 <tr>
 <td>
@@ -174,10 +176,10 @@ Redacted values _do_ stay consistent within runs. If the input contains the same
 value multiple times it will get redacted identically. This allows you to still do correlation in the result.
 </td>
 
-<th>
-<td>Example input</td>
-<td>Example output</td>
-</th>
+<tr>
+<th>Example input</th>
+<th>Example output</th>
+</tr>
 
 <tr>
 <td>
