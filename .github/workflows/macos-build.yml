@@ -10,7 +10,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Setup GraalVM CE
         uses: DeLaGuardo/setup-graalvm@3
         with:
@@ -23,8 +23,8 @@ jobs:
       - name: Setup Clojure
         uses: DeLaGuardo/setup-clojure@2.0
         with:
-          tools-deps: "latest" 
-        
+          tools-deps: "latest"
+
       - name: Show Clojure env details
         run: clojure -Sdescribe
 
@@ -33,15 +33,14 @@ jobs:
 
       - name: Install upx
         run: brew install upx
-      
+
       - name: Build native-image
-        run: clj -A:native-image
-      
+        run: clojure -A:native-image
+
       - name: Run upx
         run: upx wernicke
-      
+
       - uses: actions/upload-artifact@v2
         with:
           name: wernicke-macos
           path: wernicke
-        

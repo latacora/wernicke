@@ -24,6 +24,8 @@
    java.util.BitSet
    java.util.function.Function))
 
+(set! *warn-on-reflection* true)
+
 (def ^:private RE-PARSE-ELEMS
   "A navigator for all the parsed elements in a test.chuck regex parse tree.
 

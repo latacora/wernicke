@@ -41,7 +41,7 @@ chance this will ruin your data for testing purposes.
 
 ## Installation
 
-Download from https://github.com/latacora/wernicke
+Download from https://github.com/latacora/wernicke/releases
 
 ## Development
 
