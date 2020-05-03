@@ -33,7 +33,7 @@ jobs:
         run: clojure -A:test
 
       - name: Install upx
-        run: apt install upx
+        run: sudo apt-get install upx
 
       - name: Build native-image
         run: clojure -A:native-image
