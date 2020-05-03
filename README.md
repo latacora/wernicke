@@ -16,15 +16,16 @@ wernicke` or `wernicke < some_file.json > redacted.json`.
 ## Examples
 
 <table>
-<tr>
-<td colspan="2">
-Long (>12 chars) keys are redacted.
-</td>
-</tr>
 
 <tr>
 <th>Example input</th>
 <th>Example output</th>
+</tr>
+
+<tr>
+<td colspan="2">
+Long (>12 chars) keys are redacted.
+</td>
 </tr>
 
 <tr>
@@ -44,17 +45,10 @@ Long (>12 chars) keys are redacted.
 </td>
 </tr>
 
-<tr></tr>
-
 <tr>
 <td colspan="2">
 IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types of strings are redacted to strings of the same type: IPs to IPs, SGs to SGs, et cetera. If these strings have an alphanumeric id, that id will have the same length.
 </td>
-</tr>
-
-<tr>
-<th>Example input</th>
-<th>Example output</th>
 </tr>
 
 <tr>
@@ -96,11 +90,6 @@ IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types o
 <td colspan="2">
 Redaction happens in arbitrarily nested structures.
 </td>
-
-<tr>
-<th>Example input</th>
-<th>Example output</th>
-</tr>
 
 <tr>
 <td>
@@ -146,11 +135,6 @@ irreversible).
 </td>
 
 <tr>
-<th>Example input</th>
-<th>Example output</th>
-</tr>
-
-<tr>
 <td>
 
 ```json
@@ -177,11 +161,6 @@ irreversible).
 Redacted values _do_ stay consistent within runs. If the input contains the same
 value multiple times it will get redacted identically. This allows you to still do correlation in the result.
 </td>
-
-<tr>
-<th>Example input</th>
-<th>Example output</th>
-</tr>
 
 <tr>
 <td>
