@@ -15,16 +15,10 @@ wernicke` or `wernicke < some_file.json > redacted.json`.
 
 ## Examples
 
+Long (>12 chars) keys are redacted
+
 <table>
-
-<th>
-<td>Description</td>
-<td>Example input</td>
-<td>Example output</td>
-</th>
-
 <tr>
-<td>Long (>12 chars) keys are redacted</td>
 <td>
 
 ```json
@@ -40,10 +34,13 @@ wernicke` or `wernicke < some_file.json > redacted.json`.
 
 </td>
 </tr>
+</table>
 
+
+IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types of strings are redacted to strings of the same type: IPs to IPs, SGs to SGs, et cetera. If these strings have an alphanumeric id, that id will have the same length.
+
+<table>
 <tr>
-<td>IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types of strings are redacted to strings of the same type: IPs to IPs, SGs to SGs, et cetera. If these strings have an alphanumeric id, that id will have the same length.</td>
-
 <td>
 
 ```json
@@ -78,9 +75,12 @@ wernicke` or `wernicke < some_file.json > redacted.json`.
 
 </td>
 </tr>
+</table>
 
+Redaction happens in arbitrarily nested structures.
+
+<table>
 <tr>
-<td>Redaction happens in arbitrarily nested structures.</td>
 <td>
 
 ```json
@@ -117,10 +117,13 @@ wernicke` or `wernicke < some_file.json > redacted.json`.
 
 </td>
 </tr>
+</table>
 
+The redacted values will change across runs (this is necessary to make redaction
+irreversible).
+
+<table>
 <tr>
-<td>The redacted values will change across runs (this is necessary to make redaction
-irreversible).</td>
 <td>
 
 ```json
@@ -142,13 +145,13 @@ irreversible).</td>
 
 </td>
 </tr>
+</table>
 
-<tr>
-<td>
 Redacted values _do_ stay consistent within runs. If the input contains the same
 value multiple times it will get redacted identically. This allows you to still do correlation in the result.
-</td>
 
+<table>
+<tr>
 <td>
 
 ```json
