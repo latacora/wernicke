@@ -13,7 +13,7 @@ there's less chance this will make your data unsuitable for testing purposes.
 Most people run wernicke on a shell, so you either have `json_producing_thing |
 wernicke` or `wernicke < some_file.json > redacted.json`.
 
-## Examples
+(These examples are pretty-printed for viewing comfort, but wernicke does not do that for you. Try [jq](https://stedolan.github.io/jq/).)
 
 <table>
 
@@ -79,7 +79,7 @@ IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types o
   "mac": "aa:3e:91:ab:3b:3a",
   "timestamp": "2044-19-02T20:32:55.72Z",
   "ec2_host": "ip-207-255-185-237.ec2.internal",
-  "security_group": "sg-sg-887b8",
+  "security_group": "sg-887b8",
   "vpc": "vpc-a9d96a",
   "aws_access_key_id": "AKIAQ5E7IHRMOW7YABLS",
   "aws_role_cred": "AROA6QA7SQTM6YWS4F0H"
