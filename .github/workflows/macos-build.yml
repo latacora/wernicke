@@ -14,7 +14,8 @@ jobs:
       - name: Setup GraalVM CE
         uses: DeLaGuardo/setup-graalvm@3
         with:
-          graalvm-version: '20.0.0.java11'
+          # https://github.com/oracle/graal/issues/2177
+          graalvm-version: '19.3.0.java11'
 
       - name: Setup native-image
         run: |
