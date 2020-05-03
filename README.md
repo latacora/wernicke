@@ -10,35 +10,167 @@ you have test data where the actual values are sensitive. Because the changes
 are consistent within the data, and the overall data structure is preserved
 there's less chance this will make your data unsuitable for testing purposes.
 
+Most people run wernicke on a shell, so you either have `json_producing_thing |
+wernicke` or `wernicke < some_file.json > redacted.json`.
+
 ## Examples
 
-Long (>12) keys are redacted:
+<table>
 
-    $ echo '{"some_key": "ABBBAAAABBBBAAABBBAABB"}' | wernicke
-    {"some_key":"NFbCFsVKzszOKFBC3LI0RG"}
+<th>
+<td>Description</td>
+<td>Example input</td>
+<td>Example output</td>
+</th>
 
-IPs, MAC addresses, timestamps, and a few other types of strings are redacted:
+<tr>
+<td>Long (>12 chars) keys are redacted</td>
+<td>
 
-    $ echo '{"ip": "10.0.0.1", "mac": "ff:ff:ff:ff:ff:ff"}' | wernicke
-    {"ip":"200.225.40.176","mac":"00:de:c9:d8:d2:43"}
+```json
+{"some_key": "ABBBAAAABBBBAAABBBAABB"}
+```
 
-Redaction happens in arbitrarily deeply nested structures:
+</td>
+<td>
 
-    $ echo '{"a": {"b": ["c", "d", {"e": "10.0.0.1"}]"}}}' | wernicke
-    {"a":{"b":["c","d",{"e":"252.252.233.18"}]}}
+```json
+{"some_key": "teyjdaeqEYGw18fRIt5vLo"}
+```
 
-Redacted values change across runs (this is necessary to make redaction
-irreversible):
+</td>
+</tr>
 
-    $ echo '{"ip": "10.0.0.1", "mac": "ff:ff:ff:ff:ff:ff"}' | wernicke
-    {"ip":"246.220.253.214","mac":"dc:08:90:75:e3:91"}
+<tr>
+<td>IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types of strings are redacted to strings of the same type: IPs to IPs, SGs to SGs, et cetera. If these strings have an alphanumeric id, that id will have the same length.</td>
 
-Redacted values _are_ consistent within runs. This means a large data structure
-that contains the same value multiple times gets redacted identically, and you
-can still correlate in the result.
+<td>
 
-    $ echo '{"ip": "10.0.0.1", "differentkeybutsameip": "10.0.0.1"}' | wernicke
-    {"ip":"250.6.62.252","differentkeybutsameip":"250.6.62.252"}
+```json
+{
+  "ip": "10.0.0.1",
+  "mac": "ff:ff:ff:ff:ff:ff",
+  "timestamp": "2017-01-01T12:34:56.000Z",
+  "internal_ec2_hostname": "ip-10-0-0-1.ec2.internal",
+  "security_group": "sg-12345",
+  "vpc": "vpc-abcdef",
+  "aws_access_key_id": "AKIAXXXXXXXXXXXXXXXX",
+  "aws_role_cred": "AROAYYYYYYYYYYYYYYYY"
+}
+```
+
+</td>
+
+<td>
+
+```json
+{
+  "ip": "254.65.252.245",
+  "mac": "aa:3e:91:ab:3b:3a",
+  "timestamp": "2044-19-02T20:32:55.72Z",
+  "internal_ec2_hostname": "ip-207-255-185-237.ec2.internal",
+  "security_group": "sg-sg-887b8",
+  "vpc": "vpc-a9d96a",
+  "aws_access_key_id": "AKIAQ5E7IHRMOW7YABLS"
+  "aws_role_cred": "AROA6QA7SQTM6YWS4F0H",
+}
+```
+
+</td>
+</tr>
+
+<tr>
+<td>Redaction happens in arbitrarily nested structures.</td>
+<td>
+
+```json
+{
+  "a": {
+    "b": [
+      "c",
+      "d",
+      {
+        "e": "10.0.0.1"
+      }
+    ]
+  }
+}
+```
+
+</td>
+
+<td>
+
+```json
+{
+  "a": {
+    "b": [
+      "c",
+      "d",
+      {
+        "e": "1.212.241.246"
+      }
+    ]
+  }
+}
+```
+
+</td>
+</tr>
+
+<tr>
+<td>The redacted values will change across runs (this is necessary to make redaction
+irreversible).</td>
+<td>
+
+```json
+{
+  "ip": "10.0.0.1",
+  "mac": "ff:ff:ff:ff:ff:ff"
+}
+```
+
+</td>
+<td>
+
+```json
+{
+    "ip":"246.220.253.214",
+    "mac":"dc:08:90:75:e3:91"
+}
+```
+
+</td>
+</tr>
+
+<tr>
+<td>
+Redacted values _do_ stay consistent within runs. If the input contains the same
+value multiple times it will get redacted identically. This allows you to still do correlation in the result.
+</td>
+
+<td>
+
+```json
+{
+  "ip": "10.0.0.1",
+  "different_key_but_same_ip": "10.0.0.1"
+}
+```
+
+</td>
+<td>
+
+```json
+{
+  "ip": "247.226.167.9",
+  "different_key_but_same_ip": "247.226.167.9"
+}
+```
+
+</td>
+</tr>
+</table>
 
 ## Installation
 
