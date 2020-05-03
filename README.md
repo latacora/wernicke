@@ -1,8 +1,8 @@
 # wernicke
 
-![CI](https://github.com/latacora/wernicke/workflows/CI/badge.svg)
-
 <img alt="Carl Wernicke" src="https://raw.githubusercontent.com/latacora/wernicke/master/carl.jpg" align="right">
+
+![CI](https://github.com/latacora/wernicke/workflows/CI/badge.svg)
 
 A redaction tool. Run `wernicke` with JSON on stdin, get redacted values out.
 Preserves structure and (to some extent) semantics. You might want this because
