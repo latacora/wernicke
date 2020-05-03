@@ -68,7 +68,7 @@
 (defn ^:private apply-group-behavior
   "Apply all of the behaviors specified in the group config to this test.chuck
   regex parse tree."
-  [parsed group-config matcher]
+  [parsed group-config ^java.util.regex.Matcher matcher]
   (reduce
    (fn [parsed [group-name behavior]]
      (let [actual (.group matcher group-name)]
