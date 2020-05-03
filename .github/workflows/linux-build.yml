@@ -1,5 +1,5 @@
 ---
-name: macOS build
+name: Linux build
 
 on:
   push:
