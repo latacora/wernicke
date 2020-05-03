@@ -22,6 +22,8 @@ wernicke` or `wernicke < some_file.json > redacted.json`.
 <th>Example output</th>
 </tr>
 
+<tr></tr>
+
 <tr>
 <td colspan="2">
 Long (>12 chars) keys are redacted.
