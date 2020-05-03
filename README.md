@@ -16,7 +16,9 @@ wernicke` or `wernicke < some_file.json > redacted.json`.
 ## Examples
 
 <table>
-<tr>Long (>12 chars) keys are redacted</tr>
+<tr>
+Long (>12 chars) keys are redacted.
+</tr>
 <tr>
 <td>
 
@@ -33,10 +35,10 @@ wernicke` or `wernicke < some_file.json > redacted.json`.
 
 </td>
 </tr>
-</table>
 
-<table>
-<tr>IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types of strings are redacted to strings of the same type: IPs to IPs, SGs to SGs, et cetera. If these strings have an alphanumeric id, that id will have the same length.</tr>
+<tr>
+IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types of strings are redacted to strings of the same type: IPs to IPs, SGs to SGs, et cetera. If these strings have an alphanumeric id, that id will have the same length.
+</tr>
 <tr>
 <td>
 
