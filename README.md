@@ -15,9 +15,8 @@ wernicke` or `wernicke < some_file.json > redacted.json`.
 
 ## Examples
 
-Long (>12 chars) keys are redacted
-
 <table>
+<tr>Long (>12 chars) keys are redacted</tr>
 <tr>
 <td>
 
@@ -36,10 +35,8 @@ Long (>12 chars) keys are redacted
 </tr>
 </table>
 
-
-IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types of strings are redacted to strings of the same type: IPs to IPs, SGs to SGs, et cetera. If these strings have an alphanumeric id, that id will have the same length.
-
 <table>
+<tr>IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types of strings are redacted to strings of the same type: IPs to IPs, SGs to SGs, et cetera. If these strings have an alphanumeric id, that id will have the same length.</tr>
 <tr>
 <td>
 
@@ -48,7 +45,7 @@ IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types o
   "ip": "10.0.0.1",
   "mac": "ff:ff:ff:ff:ff:ff",
   "timestamp": "2017-01-01T12:34:56.000Z",
-  "internal_ec2_hostname": "ip-10-0-0-1.ec2.internal",
+  "ec2_host": "ip-10-0-0-1.ec2.internal",
   "security_group": "sg-12345",
   "vpc": "vpc-abcdef",
   "aws_access_key_id": "AKIAXXXXXXXXXXXXXXXX",
@@ -65,11 +62,11 @@ IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types o
   "ip": "254.65.252.245",
   "mac": "aa:3e:91:ab:3b:3a",
   "timestamp": "2044-19-02T20:32:55.72Z",
-  "internal_ec2_hostname": "ip-207-255-185-237.ec2.internal",
+  "ec2_host": "ip-207-255-185-237.ec2.internal",
   "security_group": "sg-sg-887b8",
   "vpc": "vpc-a9d96a",
-  "aws_access_key_id": "AKIAQ5E7IHRMOW7YABLS"
-  "aws_role_cred": "AROA6QA7SQTM6YWS4F0H",
+  "aws_access_key_id": "AKIAQ5E7IHRMOW7YABLS",
+  "aws_role_cred": "AROA6QA7SQTM6YWS4F0H"
 }
 ```
 
