@@ -19,7 +19,7 @@
    [clojure.spec.alpha :as s]
    [taoensso.timbre :as log])
   (:import
-   com.zackehh.siphash.SipHash
+   io.whitfin.siphash.SipHasher
    java.security.SecureRandom
    java.util.BitSet
    java.util.function.Function))
@@ -170,8 +170,8 @@
 (defn ^:private redact
   "Redact the structured value under the given key."
   [x k]
-  (let [sh (SipHash. k) ;; Instantiate once for performance benefit.
-        hash (fn [v] (->> v nippy/freeze (.hash sh) (.get)))]
+  (let [siphash (SipHasher/container k) ;; precompute w/ fixed key
+        hash (fn [v] (->> v nippy/freeze (.hash siphash)))]
     (sr/transform
      [(sr/multi-path ec/TREE-LEAVES ec/TREE-KEYS) string?]
      (partial redact-1* hash) x)))
