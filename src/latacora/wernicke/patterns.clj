@@ -44,9 +44,9 @@
 
 (def arn-re
   (let [partition "aws"
-        service "([a-z0-9\\-]{2,20})"
-        region "(((us|eu)-(west|east)(-\\d)?)|\\*)?"
-        account (str "(" long-decimal-re "|\\*)?")
+        service "(?<service>[a-z0-9\\-]{2,20})"
+        region "(?<region>((us|eu)-(west|east)(-\\d)?)|\\*)?"
+        account (str "(?<account>" long-decimal-re "|\\*)?")
         resource "[A-Za-z0-9\\-\\._ */:]+"]
     (re-pattern (str/join ":" ["arn" partition service region account resource]))))
 

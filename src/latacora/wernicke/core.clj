@@ -121,7 +121,7 @@
    (regex-rule* p/ipv4-re)
    (regex-rule* p/aws-iam-unique-id-re {::group-config {"type" ::keep "id" ::keep-length}})
    (regex-rule* p/internal-ec2-hostname-re)
-   (regex-rule* p/arn-re)
+   (regex-rule* p/arn-re {::group-config {"service" ::keep}})
    (regex-rule* p/aws-resource-id-re {::group-config {"type" ::keep "id" ::keep-length}})
    (regex-rule* p/long-decimal-re)
    (regex-rule* p/long-alphanumeric-re {::group-config {"s" ::keep-length}})])
