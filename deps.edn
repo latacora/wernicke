@@ -21,7 +21,8 @@
                "-H:Name=wernicke"
                "-H:+ReportExceptionStackTraces"
                "--initialize-at-build-time"
-               "--report-unsupported-elements-at-runtime"]
+               "--report-unsupported-elements-at-runtime"
+               "--allow-incomplete-classpath"]
    :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
    :extra-deps {clj.native-image {:git/url "https://github.com/taylorwood/clj.native-image.git"
-                                  :sha "e480cb92b9a85913b3bcad9d878db237d810f286"}}}}}
+                                  :sha "602587dfb5243ea8c72ed3e967c37c1f9d611723"}}}}}
