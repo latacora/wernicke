@@ -26,29 +26,6 @@ wernicke` or `wernicke < some_file.json > redacted.json`.
 
 <tr>
 <td colspan="2">
-Long (>12 chars) keys are redacted.
-</td>
-</tr>
-
-<tr>
-<td>
-
-```json
-{"some_key": "ABBBAAAABBBBAAABBBAABB"}
-```
-
-</td>
-<td>
-
-```json
-{"some_key": "teyjdaeqEYGw18fRIt5vLo"}
-```
-
-</td>
-</tr>
-
-<tr>
-<td colspan="2">
 IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types of strings are redacted to strings of the same type: IPs to IPs, SGs to SGs, et cetera. If these strings have an alphanumeric id, that id will have the same length.
 </td>
 </tr>
@@ -58,6 +35,7 @@ IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types o
 
 ```json
 {
+  "long_val": "ABBBAAAABBBBAAABBBAABB",
   "ip": "10.0.0.1",
   "mac": "ff:ff:ff:ff:ff:ff",
   "timestamp": "2017-01-01T12:34:56.000Z",
@@ -68,13 +46,13 @@ IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types o
   "aws_role_cred": "AROAYYYYYYYYYYYYYYYY"
 }
 ```
-
 </td>
 
 <td>
 
 ```json
 {
+  "long_val": "teyjdaeqEYGw18fRIt5vLo",
   "ip": "254.65.252.245",
   "mac": "aa:3e:91:ab:3b:3a",
   "timestamp": "2044-19-02T20:32:55.72Z",
@@ -85,7 +63,6 @@ IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types o
   "aws_role_cred": "AROA6QA7SQTM6YWS4F0H"
 }
 ```
-
 </td>
 </tr>
 
@@ -109,7 +86,6 @@ Redaction happens in arbitrarily nested structures.
   }
 }
 ```
-
 </td>
 
 <td>
@@ -127,7 +103,64 @@ Redaction happens in arbitrarily nested structures.
   }
 }
 ```
+</td>
+</tr>
 
+<tr>
+<td colspan="2">
+In addition to values in the tree, keys are also redacted, even nested ones.
+</td>
+</tr>
+
+<tr>
+<td>
+
+```json
+{
+  "vpc-12345": {
+    "sg-abcdef": {
+      "instance_count": 5
+    }
+  }
+}
+```
+</td>
+<td>
+
+```json
+{
+  "vpc-ec60f": {
+    "sg-086fd3": {
+      "instance_count": 5
+    }
+  }
+}
+```
+</td>
+</tr>
+
+<tr>
+<td colspan="2">
+Redaction also happens in the middle of strings.
+</td>
+</tr>
+
+<tr>
+<td>
+
+```json
+{
+  "x": "i-abc123 is in sg-12345 which is in vpc-abcdef"
+}
+```
+</td>
+<td>
+
+```json
+{
+  "x": "i-26a1bf is in sg-77aff which is in vpc-765716"
+}
+```
 </td>
 </tr>
 
@@ -145,7 +178,6 @@ irreversible).
   "mac": "ff:ff:ff:ff:ff:ff"
 }
 ```
-
 </td>
 <td>
 
@@ -155,13 +187,13 @@ irreversible).
     "mac":"dc:08:90:75:e3:91"
 }
 ```
-
 </td>
 </tr>
 
 <td colspan="2">
-Redacted values _do_ stay consistent within runs. If the input contains the same
-value multiple times it will get redacted identically. This allows you to still do correlation in the result.
+Redacted values _are_ consistent within runs. If the input
+contains the same value multiple times it will get redacted identically. This
+allows you to still do correlation in the result.
 </td>
 
 <tr>
@@ -173,7 +205,6 @@ value multiple times it will get redacted identically. This allows you to still 
   "different_key_but_same_ip": "10.0.0.1"
 }
 ```
-
 </td>
 <td>
 
@@ -183,7 +214,6 @@ value multiple times it will get redacted identically. This allows you to still 
   "different_key_but_same_ip": "247.226.167.9"
 }
 ```
-
 </td>
 </tr>
 </table>
