@@ -39,10 +39,10 @@ IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types o
   "ip": "10.0.0.1",
   "mac": "ff:ff:ff:ff:ff:ff",
   "timestamp": "2017-01-01T12:34:56.000Z",
-  "ec2_host": "ip-10-0-0-1.ec2.internal",
+  "ec2": "ip-10-0-0-1.ec2.internal",
   "security_group": "sg-12345",
   "vpc": "vpc-abcdef",
-  "aws_access_key_id": "AKIAXXXXXXXXXXXXXXXX",
+  "aws_access_key": "AKIAXXXXXXXXXXXXXXXX",
   "aws_role_cred": "AROAYYYYYYYYYYYYYYYY"
 }
 ```
@@ -56,10 +56,10 @@ IPs, MAC addresses, timestamps, various AWS identifiers, and a few other types o
   "ip": "254.65.252.245",
   "mac": "aa:3e:91:ab:3b:3a",
   "timestamp": "2044-19-02T20:32:55.72Z",
-  "ec2_host": "ip-207-255-185-237.ec2.internal",
+  "ec2": "ip-207-255-185-237.ec2.internal",
   "security_group": "sg-887b8",
   "vpc": "vpc-a9d96a",
-  "aws_access_key_id": "AKIAQ5E7IHRMOW7YABLS",
+  "aws_access_key": "AKIAQ5E7IHRMOW7YABLS",
   "aws_role_cred": "AROA6QA7SQTM6YWS4F0H"
 }
 ```
@@ -150,7 +150,7 @@ Redaction also happens in the middle of strings.
 
 ```json
 {
-  "x": "i-abc123 is in sg-12345 which is in vpc-abcdef"
+  "x": "i-abc123 is in sg-12345"
 }
 ```
 </td>
@@ -158,7 +158,7 @@ Redaction also happens in the middle of strings.
 
 ```json
 {
-  "x": "i-26a1bf is in sg-77aff which is in vpc-765716"
+  "x": "i-26a1bf is in sg-77aff"
 }
 ```
 </td>
@@ -202,7 +202,7 @@ allows you to still do correlation in the result.
 ```json
 {
   "ip": "10.0.0.1",
-  "different_key_but_same_ip": "10.0.0.1"
+  "also_ip": "10.0.0.1"
 }
 ```
 </td>
@@ -211,7 +211,7 @@ allows you to still do correlation in the result.
 ```json
 {
   "ip": "247.226.167.9",
-  "different_key_but_same_ip": "247.226.167.9"
+  "also_ip": "247.226.167.9"
 }
 ```
 </td>
