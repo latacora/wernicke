@@ -4,16 +4,16 @@
 
 ![CI](https://github.com/latacora/wernicke/workflows/CI/badge.svg)
 
-A redaction tool. Run `wernicke` with JSON on stdin, get redacted values out.
-Preserves structure and (to some extent) semantics. You might want this because
-you have test data where the actual values are sensitive. Because the changes
-are consistent within the data, and the overall data structure is preserved
-there's less chance this will make your data unsuitable for testing purposes.
+A redaction tool for structured data. Run `wernicke` with JSON on stdin, get
+redacted values out. Preserves structure and (to some extent) semantics. You
+might want this because you have test data where the actual values are
+sensitive. Because the changes are consistent within the data and the overall
+data structure is preserved, there a better chance your data will stay suitable
+for testing, even though it's been scrubbed.
 
 Most people run wernicke on a shell, so you either have `json_producing_thing |
-wernicke` or `wernicke < some_file.json > redacted.json`.
-
-(These examples are pretty-printed for viewing comfort, but wernicke does not do that for you. Try [jq](https://stedolan.github.io/jq/).)
+wernicke` or `wernicke < some_file.json > redacted.json`. EDN is also supported.
+See `wernicke --help` for additional information.
 
 <table>
 
@@ -217,6 +217,8 @@ allows you to still do correlation in the result.
 </td>
 </tr>
 </table>
+
+(These examples were pretty-printed for viewing comfort, but wernicke does not do that for you. Try [jq](https://stedolan.github.io/jq/).)
 
 ## Installation
 
