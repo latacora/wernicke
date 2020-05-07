@@ -27,7 +27,7 @@
     [])
 
   (let [orig-vpc "vpc-12345"
-        {:keys [a b]} (#'wc/redact {:a orig-vpc :b orig-vpc} zero-key)]
+        {:keys [a b]} (redact* {:a orig-vpc :b orig-vpc})]
     (t/is (= a b))
     (t/is (not= a orig-vpc))))
 
@@ -38,7 +38,7 @@
    :x [:y :z]})
 
 (t/deftest nested-redact-test
-  (let [redacted (#'wc/redact nested zero-key)
+  (let [redacted (redact* nested)
         [only-in-orig _ in-both] (diff nested redacted)]
     (t/is (= {:a {:b {:d "Constant"}}
               :x [:y :z]}
@@ -65,7 +65,7 @@
                          wp/internal-ec2-hostname-re]]
                        (for [arn arns]
                          [arn wp/arn-re]))
-          :let [after (#'wc/redact before zero-key)]]
+          :let [after (redact* before)]]
     (t/is (re-matches re before))
     (t/is (re-matches re after))
     (t/is (not= before after))))
@@ -164,7 +164,7 @@
      [pattern (-> kept-groups keys gen/elements)
       fixed-group-name (-> pattern kept-groups gen/elements)
       orig (-> pattern gen'/string-from-regex)
-      :let [redacted (#'wc/redact orig zero-key)
+      :let [redacted (redact* orig)
             redacted-fixed-val (re-group pattern redacted fixed-group-name)]]
      (t/is (= 1 (count-occurrences redacted-fixed-val redacted)))
      (t/is (= (re-group pattern orig fixed-group-name) redacted-fixed-val)))))
