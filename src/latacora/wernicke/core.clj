@@ -62,15 +62,15 @@
    [len len]
    parsed))
 
-(s/def ::group-behavior #{::keep ::keep-length})
-(s/def ::group-config (s/map-of string? ::group-behavior))
+(s/def ::behavior #{::keep ::keep-length})
+(s/def ::group-config (s/keys :req [::behavior]))
 
 (defn ^:private apply-group-behavior
   "Apply all of the behaviors specified in the group config to this test.chuck
   regex parse tree."
   [parsed group-config ^java.util.regex.Matcher matcher]
   (reduce
-   (fn [parsed [group-name behavior]]
+   (fn [parsed [group-name {::keys [behavior]}]]
      (let [actual (.group matcher ^String group-name)]
        (case behavior
          ::keep (set-group-value parsed group-name actual)
@@ -119,12 +119,22 @@
    (regex-rule* p/mac-colon-re)
    (regex-rule* p/mac-dash-re)
    (regex-rule* p/ipv4-re)
-   (regex-rule* p/aws-iam-unique-id-re {::group-config {"type" ::keep "id" ::keep-length}})
+   (regex-rule* p/aws-iam-unique-id-re
+                {::group-config
+                 {"type" {::behavior ::keep}
+                  "id" {::behavior ::keep-length}}})
    (regex-rule* p/internal-ec2-hostname-re)
-   (regex-rule* p/arn-re {::group-config {"service" ::keep}})
-   (regex-rule* p/aws-resource-id-re {::group-config {"type" ::keep "id" ::keep-length}})
+   (regex-rule* p/arn-re
+                {::group-config
+                 {"service" {::behavior ::keep}}})
+   (regex-rule* p/aws-resource-id-re
+                {::group-config
+                 {"type" {::behavior ::keep}
+                  "id" {::behavior ::keep-length}}})
    (regex-rule* p/long-decimal-re)
-   (regex-rule* p/long-alphanumeric-re {::group-config {"s" ::keep-length}})])
+   (regex-rule* p/long-alphanumeric-re
+                {::group-config
+                 {"s" {::behavior ::keep-length}}})])
 
 (defn ^Function ^:private ->Function
   [f]

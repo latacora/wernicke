@@ -155,7 +155,7 @@
   (let [kept-groups (->>
                      (for [{::wc/keys [pattern group-config]} @#'wc/default-rules
                            :let [kept (for [[group-name config] group-config
-                                            :when (= config ::wc/keep)]
+                                            :when (-> config ::wc/behavior (= ::wc/keep))]
                                         group-name)]
                            :when (seq kept)]
                        [pattern kept])
