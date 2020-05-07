@@ -62,15 +62,15 @@
    [len len]
    parsed))
 
-(s/def ::group-behavior #{::keep ::keep-length})
-(s/def ::group-config (s/map-of string? ::group-behavior))
+(s/def ::behavior #{::keep ::keep-length})
+(s/def ::group-config (s/keys :req [::behavior]))
 
 (defn ^:private apply-group-behavior
   "Apply all of the behaviors specified in the group config to this test.chuck
   regex parse tree."
   [parsed group-config ^java.util.regex.Matcher matcher]
   (reduce
-   (fn [parsed [group-name behavior]]
+   (fn [parsed [group-name {::keys [behavior]}]]
      (let [actual (.group matcher ^String group-name)]
        (case behavior
          ::keep (set-group-value parsed group-name actual)
@@ -90,17 +90,17 @@
   "Given a regex and optional ops, produce a compiled rule."
   ([pattern]
    (regex-rule pattern nil))
-  ([pattern opts]
-   (compile-rule (assoc opts ::type ::regex ::pattern pattern))))
+  ([pattern rule-opts]
+   (compile-rule (assoc rule-opts ::type ::regex ::pattern pattern))))
 
 (defmacro regex-rule*
   "Like [[regex-rule]] but automatically sets the name based on the sym."
   ([pattern-sym]
    `(regex-rule* ~pattern-sym nil))
-  ([pattern-sym opts]
+  ([pattern-sym rule-opts]
    (let [var-meta (-> pattern-sym resolve meta)]
      `(regex-rule ~pattern-sym
-                  (assoc ~opts
+                  (assoc ~rule-opts
                          ::name ~(keyword (-> var-meta :ns ns-name name)
                                           (-> var-meta :name name)))))))
 
@@ -119,12 +119,22 @@
    (regex-rule* p/mac-colon-re)
    (regex-rule* p/mac-dash-re)
    (regex-rule* p/ipv4-re)
-   (regex-rule* p/aws-iam-unique-id-re {::group-config {"type" ::keep "id" ::keep-length}})
+   (regex-rule* p/aws-iam-unique-id-re
+                {::group-config
+                 {"type" {::behavior ::keep}
+                  "id" {::behavior ::keep-length}}})
    (regex-rule* p/internal-ec2-hostname-re)
-   (regex-rule* p/arn-re {::group-config {"service" ::keep}})
-   (regex-rule* p/aws-resource-id-re {::group-config {"type" ::keep "id" ::keep-length}})
+   (regex-rule* p/arn-re
+                {::group-config
+                 {"service" {::behavior ::keep}}})
+   (regex-rule* p/aws-resource-id-re
+                {::group-config
+                 {"type" {::behavior ::keep}
+                  "id" {::behavior ::keep-length}}})
    (regex-rule* p/long-decimal-re)
-   (regex-rule* p/long-alphanumeric-re {::group-config {"s" ::keep-length}})])
+   (regex-rule* p/long-alphanumeric-re
+                {::group-config
+                 {"s" {::behavior ::keep-length}}})])
 
 (defn ^Function ^:private ->Function
   [f]
@@ -132,7 +142,7 @@
     (apply [this arg] (f arg))))
 
 (defn ^:private redact-1
-  [hash string-to-redact]
+  [string-to-redact {::keys [hash]}]
   (let [cover (BitSet. (count string-to-redact))]
     (reduce
      (fn [s {::keys [pattern parsed-pattern group-config]}]
@@ -160,8 +170,8 @@
 
 (defn ^:private redact-1*
   "Like redact-1, but with logging."
-  [hash val]
-  (let [redacted (redact-1 hash val)]
+  [val opts]
+  (let [redacted (redact-1 val opts)]
     (if (identical? redacted val)
       (log/debug "Not redacting value" val)
       (log/trace "Redacted value" val redacted))
@@ -169,16 +179,18 @@
 
 (defn ^:private redact
   "Redact the structured value under the given key."
-  [x k]
-  (let [siphash (SipHasher/container k) ;; precompute w/ fixed key
-        hash (fn [v] (->> v nippy/freeze (.hash siphash)))]
+  [x {::keys [key] :as opts}]
+  (let [siphash (SipHasher/container key) ;; precompute w/ fixed key
+        hash (fn [v] (->> v nippy/freeze (.hash siphash)))
+        opts (assoc opts ::hash hash)]
     (sr/transform
      [(sr/multi-path ec/TREE-LEAVES ec/TREE-KEYS) string?]
-     (partial redact-1* hash) x)))
+     (fn [s] (redact-1* s opts))
+     x)))
 
 (defn redact!
   "Attempt to automatically redact the structured value.
 
   This is side-effectful because it will generate a new key each time."
   [x]
-  (redact x (key!)))
+  (redact x {::key (key!)}))
