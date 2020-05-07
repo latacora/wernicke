@@ -90,17 +90,17 @@
   "Given a regex and optional ops, produce a compiled rule."
   ([pattern]
    (regex-rule pattern nil))
-  ([pattern opts]
-   (compile-rule (assoc opts ::type ::regex ::pattern pattern))))
+  ([pattern rule-opts]
+   (compile-rule (assoc rule-opts ::type ::regex ::pattern pattern))))
 
 (defmacro regex-rule*
   "Like [[regex-rule]] but automatically sets the name based on the sym."
   ([pattern-sym]
    `(regex-rule* ~pattern-sym nil))
-  ([pattern-sym opts]
+  ([pattern-sym rule-opts]
    (let [var-meta (-> pattern-sym resolve meta)]
      `(regex-rule ~pattern-sym
-                  (assoc ~opts
+                  (assoc ~rule-opts
                          ::name ~(keyword (-> var-meta :ns ns-name name)
                                           (-> var-meta :name name)))))))
 
