@@ -132,7 +132,7 @@
     (apply [this arg] (f arg))))
 
 (defn ^:private redact-1
-  [hash string-to-redact]
+  [string-to-redact {::keys [hash]}]
   (let [cover (BitSet. (count string-to-redact))]
     (reduce
      (fn [s {::keys [pattern parsed-pattern group-config]}]
@@ -160,8 +160,8 @@
 
 (defn ^:private redact-1*
   "Like redact-1, but with logging."
-  [hash val]
-  (let [redacted (redact-1 hash val)]
+  [val opts]
+  (let [redacted (redact-1 val opts)]
     (if (identical? redacted val)
       (log/debug "Not redacting value" val)
       (log/trace "Redacted value" val redacted))
@@ -169,16 +169,18 @@
 
 (defn ^:private redact
   "Redact the structured value under the given key."
-  [x k]
-  (let [siphash (SipHasher/container k) ;; precompute w/ fixed key
-        hash (fn [v] (->> v nippy/freeze (.hash siphash)))]
+  [x {::keys [key] :as opts}]
+  (let [siphash (SipHasher/container key) ;; precompute w/ fixed key
+        hash (fn [v] (->> v nippy/freeze (.hash siphash)))
+        opts (assoc opts ::hash hash)]
     (sr/transform
      [(sr/multi-path ec/TREE-LEAVES ec/TREE-KEYS) string?]
-     (partial redact-1* hash) x)))
+     (fn [s] (redact-1* s opts))
+     x)))
 
 (defn redact!
   "Attempt to automatically redact the structured value.
 
   This is side-effectful because it will generate a new key each time."
   [x]
-  (redact x (key!)))
+  (redact x {::key (key!)}))
