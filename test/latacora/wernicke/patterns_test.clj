@@ -31,7 +31,7 @@
   (t/is (not (re-matches wp/mac-re mac-travesty-with-mixed-delimiters))))
 
 (def aws-resource-types
-  ["i" "sg" "rtb" "subnet" "acl" "aclassoc" "bundle" "conversion-task" "customer-gateway" "dhcp-options" "elastic-ip-allocation" "elastic-ip-association" "export-task" "flow-log" "image" "import-task" "internet-gateway" "network-acl" "network-acl-association" "network-interface" "network-interface-attachment" "prefix-list" "route-table" "route-table-association" "security-group" "subnet" "subnet-cidr-block-association" "vpc" "vpc-cidr-block-association" "vpc-endpoint" "vpc-peering-connection" "vpn-connection" "vpn-gateway"])
+  ["i" "sg" "rtb" "subnet" "acl" "aclassoc" "bun" "import-i" "cgw" "dopt" "eipalloc" "eassoc" "export-i" "fl" "ami" "import-ami" "igw" "acl" "aclassoc" "eni" "eni-attach" "pl" "rtbassoc" "subnet" "subnet-cidr-assoc" "vpc" "vpc-cidr-assoc" "vpce" "pcx" "vpn" "vgw"])
 
 (t/deftest aws-resource-type-tests
   (doseq [t aws-resource-types]
