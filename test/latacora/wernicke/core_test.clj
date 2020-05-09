@@ -19,7 +19,7 @@
 
 (defn redact*
   [x]
-  (#'wc/redact x {::wc/key zero-key}))
+  (#'wc/redact x (assoc wc/default-config ::wc/key zero-key)))
 
 (t/deftest redact-test
   (t/are [x] (= x (redact* x))
