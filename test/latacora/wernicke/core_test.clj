@@ -136,7 +136,11 @@
 
 (tct/defspec regex-redaction-with-groups-preserves-regex-match
   (tct'/for-all
-   [pattern (->> @#'wc/default-rules (filter ::wc/group-config) (map ::wc/pattern) gen/elements)
+   [pattern (->> @#'wc/default-config
+                 ::wc/rules
+                 (filter ::wc/group-config)
+                 (map ::wc/pattern)
+                 gen/elements)
     orig (gen'/string-from-regex pattern)
     :let [redacted (wc/redact! orig)]]
    (t/is (re-matches pattern redacted))))
@@ -152,10 +156,12 @@
   (-> haystack (str/split (re-pattern needle)) count dec))
 
 (tct/defspec no-duplicated-kept-groups
-  (let [kept-groups (->>
-                     (for [{::wc/keys [pattern group-config]} @#'wc/default-rules
+  (let [default-rules (::wc/rules @#'wc/default-config)
+        kept-groups (->>
+                     (for [{::wc/keys [pattern group-config]} default-rules
                            :let [kept (for [[group-name config] group-config
-                                            :when (-> config ::wc/behavior (= ::wc/keep))]
+                                            :let [behavior (::wc/behavior config)]
+                                            :when (= behavior ::wc/keep)]
                                         group-name)]
                            :when (seq kept)]
                        [pattern kept])

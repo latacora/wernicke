@@ -114,27 +114,28 @@
     (.nextBytes (SecureRandom.) k)
     k))
 
-(def ^:private default-rules
-  [(regex-rule* p/timestamp-re)
-   (regex-rule* p/mac-colon-re)
-   (regex-rule* p/mac-dash-re)
-   (regex-rule* p/ipv4-re)
-   (regex-rule* p/aws-iam-unique-id-re
-                {::group-config
-                 {"type" {::behavior ::keep}
-                  "id" {::behavior ::keep-length}}})
-   (regex-rule* p/internal-ec2-hostname-re)
-   (regex-rule* p/arn-re
-                {::group-config
-                 {"service" {::behavior ::keep}}})
-   (regex-rule* p/aws-resource-id-re
-                {::group-config
-                 {"type" {::behavior ::keep}
-                  "id" {::behavior ::keep-length}}})
-   (regex-rule* p/long-decimal-re)
-   (regex-rule* p/long-alphanumeric-re
-                {::group-config
-                 {"s" {::behavior ::keep-length}}})])
+(def default-opts
+  {::rules
+   [(regex-rule* p/timestamp-re)
+    (regex-rule* p/mac-colon-re)
+    (regex-rule* p/mac-dash-re)
+    (regex-rule* p/ipv4-re)
+    (regex-rule* p/aws-iam-unique-id-re
+                 {::group-config
+                  {"type" {::behavior ::keep}
+                   "id" {::behavior ::keep-length}}})
+    (regex-rule* p/internal-ec2-hostname-re)
+    (regex-rule* p/arn-re
+                 {::group-config
+                  {"service" {::behavior ::keep}}})
+    (regex-rule* p/aws-resource-id-re
+                 {::group-config
+                  {"type" {::behavior ::keep}
+                   "id" {::behavior ::keep-length}}})
+    (regex-rule* p/long-decimal-re)
+    (regex-rule* p/long-alphanumeric-re
+                 {::group-config
+                  {"s" {::behavior ::keep-length}}})]})
 
 (defn ^Function ^:private ->Function
   [f]
@@ -142,7 +143,7 @@
     (apply [this arg] (f arg))))
 
 (defn ^:private redact-1
-  [string-to-redact {::keys [hash]}]
+  [string-to-redact {::keys [hash rules]}]
   (let [cover (BitSet. (count string-to-redact))]
     (reduce
      (fn [s {::keys [pattern parsed-pattern group-config]}]
@@ -166,7 +167,7 @@
                      (gen/call-gen rnd 1)
                      rose/root))))))))
      string-to-redact
-     default-rules)))
+     rules)))
 
 (defn ^:private redact-1*
   "Like redact-1, but with logging."
@@ -192,5 +193,7 @@
   "Attempt to automatically redact the structured value.
 
   This is side-effectful because it will generate a new key each time."
-  [x]
-  (redact x {::key (key!)}))
+  ([x opts]
+   (redact x (assoc opts ::key (key!))))
+  ([x]
+   (redact! x default-opts)))
