@@ -225,3 +225,16 @@
           template (fn [vpc-id ec2-id] {"vpc_map" {ec2-id vpc-id}})]
       (t/is (= (template redacted-vpc redacted-ec2)
                (redact* (template orig-vpc orig-ec2)))))))
+
+(t/deftest redaction-with-opts
+  (let [orig {:vpc "vpc-12345"
+              :ip "10.0.0.1"}
+        ip-rule-config (update
+                        @#'wc/default-opts
+                        ::wc/rules
+                        (fn [rules]
+                          (filter #(= ::wp/ipv4-re (::wc/name %)) rules)))
+        redacted (#'wc/redact! orig ip-rule-config)]
+    (t/testing "explicit rules"
+      (t/is (= (:vpc orig) (:vpc redacted)))
+      (t/is (not= (:ip orig) (:ip redacted))))))
