@@ -137,6 +137,24 @@
                  {::group-config
                   {"s" {::behavior ::keep-length}}})]})
 
+(defn process-opts
+  [opts]
+  (let [opts (sr/setval
+              [(sr/multi-path ec/TREE-KEYS ec/TREE-LEAVES)
+               keyword? sr/NAMESPACE nil?]
+              "latacora.wernicke.core"
+              opts)]
+    (->>
+     opts
+     (merge default-opts)
+     (sr/transform
+      [::rules]
+      (fn [rules]
+        (into
+         (->> opts ::extra-rules (mapv compile-rule))
+         (remove (comp (->> opts ::disabled-rules set) ::name))
+         rules))))))
+
 (defn ^Function ^:private ->Function
   [f]
   (reify Function

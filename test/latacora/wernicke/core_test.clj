@@ -10,7 +10,8 @@
             [clojure.test.check.clojure-test :as tct]
             [com.gfredericks.test.chuck.generators :as gen']
             [com.gfredericks.test.chuck.regexes :as cre]
-            [com.gfredericks.test.chuck.clojure-test :as tct']))
+            [com.gfredericks.test.chuck.clojure-test :as tct']
+            [taoensso.timbre :as log]))
 
 (t/deftest keygen-test
   (t/is (-> (#'wc/key!) count (= 16))))
@@ -18,8 +19,10 @@
 (def zero-key (byte-array 16))
 
 (defn redact*
-  [x]
-  (#'wc/redact x (assoc wc/default-opts ::wc/key zero-key)))
+  ([x]
+   (redact* x wc/default-opts))
+  ([x opts]
+   (#'wc/redact x (assoc opts ::wc/key zero-key))))
 
 (t/deftest redact-test
   (t/are [x] (= x (redact* x))
@@ -222,14 +225,46 @@
                (redact* (template orig-vpc orig-ec2)))))))
 
 (t/deftest redaction-with-opts-tests
-  (let [orig {:vpc "vpc-12345"
-              :ip "10.0.0.1"}
+  (let [orig {:vpc "vpc-12345" :ip "10.0.0.1"}
         ip-rule-config (update
                         @#'wc/default-opts
                         ::wc/rules
                         (fn [rules]
                           (filter #(= ::wp/ipv4-re (::wc/name %)) rules)))
-        redacted (#'wc/redact! orig ip-rule-config)]
-    (t/testing "explicit rules"
+        redacted (redact* orig ip-rule-config)]
+    (t/testing "explicit rule just for ipv4 addresses"
       (t/is (= (:vpc orig) (:vpc redacted)))
-      (t/is (not= (:ip orig) (:ip redacted))))))
+      (t/is (not= (:ip orig) (:ip redacted)))))
+
+  (let [orig {:vpc "vpc-12345" :ip "10.0.0.1"}
+        redacted (redact*
+                  orig
+                  (wc/process-opts
+                   {:disabled-rules
+                    [:latacora.wernicke.patterns/ipv4-re]}))]
+    (t/testing "removing a rule by name"
+      (t/is (not= (:vpc orig) (:vpc redacted)))
+      (t/is (= (:ip orig) (:ip redacted)))))
+
+  (let [orig {:lyric "Cooking MCs like a pound of bacon" :sg orig-sg}
+        foods ["bacon" "baloney" "pepperoni" "salami" "broken glass"]
+        config (wc/process-opts
+                {:extra-rules
+                 [{:name :foods
+                   :type :regex
+                   :pattern (->> foods
+                                 (str/join "|")
+                                 (format "(%s)")
+                                 (re-pattern))}]})
+        ;; we just get lucky that this maps to not-bacon with an all-zero key:
+        ;; the number of values this regex can match is clearly limited.
+        redacted-a (log/spy (redact* orig))
+        redacted-b (log/spy (redact* orig config))]
+    (t/testing "explicit extra rules"
+      (t/is (= (:lyric orig) (:lyric redacted-a))
+            "not redacted by default")
+      (t/is (not= (:lyric orig) (:lyric redacted-b))
+            "redacted with the extra rule")
+      (t/testing "extra rules do not break default rules"
+        (t/is (not= (:sg orig) (:sg redacted-a)))
+        (t/is (not= (:sg orig) (:sg redacted-b)))))))
