@@ -226,7 +226,7 @@
       (t/is (= (template redacted-vpc redacted-ec2)
                (redact* (template orig-vpc orig-ec2)))))))
 
-(t/deftest redaction-with-opts
+(t/deftest redaction-with-opts-tests
   (let [orig {:vpc "vpc-12345"
               :ip "10.0.0.1"}
         ip-rule-config (update
