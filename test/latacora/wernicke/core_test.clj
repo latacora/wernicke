@@ -19,7 +19,7 @@
 
 (defn redact*
   [x]
-  (#'wc/redact x (assoc wc/default-config ::wc/key zero-key)))
+  (#'wc/redact x (assoc wc/default-opts ::wc/key zero-key)))
 
 (t/deftest redact-test
   (t/are [x] (= x (redact* x))
@@ -136,7 +136,7 @@
 
 (tct/defspec regex-redaction-with-groups-preserves-regex-match
   (tct'/for-all
-   [pattern (->> @#'wc/default-config
+   [pattern (->> @#'wc/default-opts
                  ::wc/rules
                  (filter ::wc/group-config)
                  (map ::wc/pattern)
@@ -156,7 +156,7 @@
   (-> haystack (str/split (re-pattern needle)) count dec))
 
 (tct/defspec no-duplicated-kept-groups
-  (let [default-rules (::wc/rules @#'wc/default-config)
+  (let [default-rules (::wc/rules @#'wc/default-opts)
         kept-groups (->>
                      (for [{::wc/keys [pattern group-config]} default-rules
                            :let [kept (for [[group-name config] group-config
