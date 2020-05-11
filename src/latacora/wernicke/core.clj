@@ -70,10 +70,11 @@
   regex parse tree."
   [parsed group-config ^java.util.regex.Matcher matcher]
   (reduce
-   (fn [parsed [group-name {::keys [behavior]}]]
+   (fn [parsed [group-name {::keys [behavior replacement]}]]
      (let [actual (.group matcher ^String group-name)]
        (case behavior
          ::keep (set-group-value parsed group-name actual)
+         ::replace-with (set-group-value parsed group-name replacement)
          ::keep-length (set-group-length parsed group-name (count actual)))))
    parsed
    group-config))

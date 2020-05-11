@@ -10,8 +10,7 @@
             [clojure.test.check.clojure-test :as tct]
             [com.gfredericks.test.chuck.generators :as gen']
             [com.gfredericks.test.chuck.regexes :as cre]
-            [com.gfredericks.test.chuck.clojure-test :as tct']
-            [taoensso.timbre :as log]))
+            [com.gfredericks.test.chuck.clojure-test :as tct']))
 
 (t/deftest keygen-test
   (t/is (-> (#'wc/key!) count (= 16))))
@@ -258,8 +257,8 @@
                                  (re-pattern))}]})
         ;; we just get lucky that this maps to not-bacon with an all-zero key:
         ;; the number of values this regex can match is clearly limited.
-        redacted-a (log/spy (redact* orig))
-        redacted-b (log/spy (redact* orig config))]
+        redacted-a (redact* orig)
+        redacted-b (redact* orig config)]
     (t/testing "explicit extra rules"
       (t/is (= (:lyric orig) (:lyric redacted-a))
             "not redacted by default")
@@ -267,4 +266,16 @@
             "redacted with the extra rule")
       (t/testing "extra rules do not break default rules"
         (t/is (not= (:sg orig) (:sg redacted-a)))
-        (t/is (not= (:sg orig) (:sg redacted-b)))))))
+        (t/is (not= (:sg orig) (:sg redacted-b))))))
+
+  (let [orig {:lyric "Cooking MCs like a pound of bacon"}
+        config (wc/process-opts
+                {:extra-rules
+                 [{:name ::kosherify-foods
+                   :type :regex
+                   :pattern #"(?<food>bacon)"
+                   :group-config {"food" {:behavior :replace-with
+                                          :replacement "brisket"}}}]})
+        redacted (redact* orig config)]
+    (t/testing "explicit extra rules with replacement"
+      (t/is (= "Cooking MCs like a pound of brisket" (:lyric redacted))))))
