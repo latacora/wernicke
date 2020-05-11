@@ -73,7 +73,7 @@
     (t/is (not= before after))))
 
 (t/deftest regex-compile-test
-  (let [rule (wc/compile-rule {::wc/type ::wc/regex ::pattern wp/ipv4-re})]
+  (let [rule (wc/compile-rule {::wc/type ::wc/regex ::wc/pattern wp/ipv4-re})]
     (t/is (some? rule))))
 
 (t/deftest regex-with-fixed-group-test
