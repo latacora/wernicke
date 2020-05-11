@@ -58,8 +58,8 @@
 (tct/defspec timestamp-digit-boundaries-test
   (prop/for-all [ output (gen'/string-from-regex wp/timestamp-re)]
                 (let [[full year month day hour minute second rest] (re-find wp/timestamp-re output)]
-                  (and (<= (Integer. month) 12)
-                       (<= (Integer. day) 31)
-                       (<= (Integer. hour) 23)
-                       (<= (Integer. minute) 59)
-                       (<= (Integer. second) 59)))))
+                  (and (<= (Integer/parseInt month) 12)
+                       (<= (Integer/parseInt day) 31)
+                       (<= (Integer/parseInt hour) 23)
+                       (<= (Integer/parseInt minute) 59)
+                       (<= (Integer/parseInt second) 59)))))
