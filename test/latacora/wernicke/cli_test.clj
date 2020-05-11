@@ -25,12 +25,14 @@
   [& body]
   `(with-redefs [cli/exit! (fn [message# code#]
                              (->> {:message message# :code code#}
-                                  (ex-info "exit! called")
+                                  (ex-info "mock exit! called")
                                   (throw)))]
      (try
        {:exited? false :value ~@body}
        (catch clojure.lang.ExceptionInfo e#
-         {:exited? true :value (ex-data e#)}))))
+         (if (-> e# .getMessage (= "mock exit! called"))
+           {:exited? true :value (ex-data e#)}
+           (throw e#)))))) ;; a real bug
 
 (defmacro with-captured-output
   [& body]
