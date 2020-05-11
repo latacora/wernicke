@@ -56,44 +56,10 @@
     "XYZZY"))
 
 (tct/defspec timestamp-digit-boundaries-test
-  (prop/for-all [ output (gen'/string-from-regex wp/timestamp-re-1)]
-                (let [month (Integer. (subs output 5 7))]
-                  (<= month 12))))
-
-(comment
-  (let [output (gen/sample (gen'/string-from-regex wp/timestamp-re-1))]
-    (doseq [x output]
-      (let [matcher (re-matcher wp/timestamp-re-1 x)
-                                        ;month (.group matcher "month")
-            test (re-seq wp/timestamp-re-1 x)
-            ]
-        (println test))
-      ))
-
-  )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  (prop/for-all [ output (gen'/string-from-regex wp/timestamp-re)]
+                (let [[full year month day hour minute second rest] (re-find wp/timestamp-re output)]
+                  (and (<= (Integer. month) 12)
+                       (<= (Integer. day) 31)
+                       (<= (Integer. hour) 23)
+                       (<= (Integer. minute) 59)
+                       (<= (Integer. second) 59)))))
