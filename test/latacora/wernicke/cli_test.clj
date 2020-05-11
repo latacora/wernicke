@@ -57,6 +57,7 @@
    "Options:"
    "  -h, --help                 display help message"
    "  -v, --verbose              increase verbosity"
+   "  -c, --config EDN           configuration"
    "  -i, --input FORMAT   json  input format (one of json, edn)"
    "  -o, --output FORMAT  json  output format (one of json, edn)"])
 
@@ -123,9 +124,12 @@
                {:extra-rules
                 [{:name ::numbers
                   :type :regex
-                  :pattern #"\d*"}]})]
+                  ;; note: :pattern can't be a regex literal because while
+                  ;; pr-str will produce a string for it, edn/read-string won't
+                  ;; be able to consume it again. as a consequence,
+                  ;; wc/process-opts has to ensure it's a Pattern.
+                  :pattern "\\d*"}]})]
         {:keys [exited? value]} (cli-test-harness json args)]
     (t/is (not exited?))
     (t/is (= "" (:err value)))
-    ;; technically this test might randomly fail
     (t/is (= json (:out value)))))

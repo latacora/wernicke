@@ -81,11 +81,15 @@
 
 (defmulti compile-rule ::type)
 (defmethod compile-rule ::regex
-  [{::keys [pattern] :as rule}]
-  (let [parsed (-> pattern str cre/parse)]
-    (assoc
-     rule
-     ::parsed-pattern parsed)))
+  [rule]
+  (-> rule
+      ;; pattern may already be a Pattern, unless it came from EDN
+      ;; configuration, in which case it'll be a string. EDN doesn't support
+      ;; regexes out of the box; we could add a reader macro, but it's easier on
+      ;; the user to just always convert to a pattern here. (re-pattern returns
+      ;; Patterns verbatim.)
+      (update ::pattern re-pattern)
+      (assoc ::parsed-pattern (-> rule ::pattern str cre/parse))))
 
 (defn regex-rule
   "Given a regex and optional ops, produce a compiled rule."

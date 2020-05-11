@@ -36,6 +36,8 @@
     :id :verbosity
     :default 0
     :update-fn inc]
+   ["-c" "--config EDN" "configuration"
+    :parse-fn edn/read-string]
    (format-opt "input" parsers)
    (format-opt "output" serializers)])
 
@@ -92,10 +94,11 @@
   "I don't do a whole lot ... yet."
   [& args]
   (let [{:keys [opts exit-message ok]} (validate-args args)
-        {:keys [input-fn output-fn verbosity]} opts]
+        {:keys [input-fn output-fn verbosity config]} opts
+        config (wc/process-opts config)]
     (when exit-message (exit! exit-message (if ok 0 1)))
     (log/set-config!
      (assoc log/example-config
             :appenders [(log/println-appender {:stream :*err*})]
             :level (verbosity->log-level verbosity)))
-    (-> *in* input-fn wc/redact! output-fn)))
+    (-> *in* input-fn (wc/redact! config) output-fn)))
