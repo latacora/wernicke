@@ -1,7 +1,13 @@
 (ns latacora.wernicke.patterns-test
   (:require [latacora.wernicke.patterns :as wp]
             [clojure.test :as t]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.test.check.generators :as gen]
+            [clojure.test.check.properties :as prop]
+            [clojure.test.check.clojure-test :as tct]
+            [com.gfredericks.test.chuck.generators :as gen']
+            [com.gfredericks.test.chuck.regexes :as cre]
+            [com.gfredericks.test.chuck.clojure-test :as tct']))
 
 (def arns
   "Examples of ARNs.
@@ -48,3 +54,46 @@
   (t/are [s] (not (re-matches wp/aws-iam-unique-id-re s))
     "iddqd"
     "XYZZY"))
+
+(tct/defspec timestamp-digit-boundaries-test
+  (prop/for-all [ output (gen'/string-from-regex wp/timestamp-re-1)]
+                (let [month (Integer. (subs output 5 7))]
+                  (<= month 12))))
+
+(comment
+  (let [output (gen/sample (gen'/string-from-regex wp/timestamp-re-1))]
+    (doseq [x output]
+      (let [matcher (re-matcher wp/timestamp-re-1 x)
+                                        ;month (.group matcher "month")
+            test (re-seq wp/timestamp-re-1 x)
+            ]
+        (println test))
+      ))
+
+  )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
