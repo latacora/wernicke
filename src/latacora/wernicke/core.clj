@@ -70,21 +70,26 @@
   regex parse tree."
   [parsed group-config ^java.util.regex.Matcher matcher]
   (reduce
-   (fn [parsed [group-name {::keys [behavior]}]]
+   (fn [parsed [group-name {::keys [behavior replacement]}]]
      (let [actual (.group matcher ^String group-name)]
        (case behavior
          ::keep (set-group-value parsed group-name actual)
+         ::replace-with (set-group-value parsed group-name replacement)
          ::keep-length (set-group-length parsed group-name (count actual)))))
    parsed
    group-config))
 
 (defmulti compile-rule ::type)
 (defmethod compile-rule ::regex
-  [{::keys [pattern] :as rule}]
-  (let [parsed (-> pattern str cre/parse)]
-    (assoc
-     rule
-     ::parsed-pattern parsed)))
+  [rule]
+  (-> rule
+      ;; pattern may already be a Pattern, unless it came from EDN
+      ;; configuration, in which case it'll be a string. EDN doesn't support
+      ;; regexes out of the box; we could add a reader macro, but it's easier on
+      ;; the user to just always convert to a pattern here. (re-pattern returns
+      ;; Patterns verbatim.)
+      (update ::pattern re-pattern)
+      (assoc ::parsed-pattern (-> rule ::pattern str cre/parse))))
 
 (defn regex-rule
   "Given a regex and optional ops, produce a compiled rule."
@@ -114,27 +119,46 @@
     (.nextBytes (SecureRandom.) k)
     k))
 
-(def ^:private default-rules
-  [(regex-rule* p/timestamp-re)
-   (regex-rule* p/mac-colon-re)
-   (regex-rule* p/mac-dash-re)
-   (regex-rule* p/ipv4-re)
-   (regex-rule* p/aws-iam-unique-id-re
-                {::group-config
-                 {"type" {::behavior ::keep}
-                  "id" {::behavior ::keep-length}}})
-   (regex-rule* p/internal-ec2-hostname-re)
-   (regex-rule* p/arn-re
-                {::group-config
-                 {"service" {::behavior ::keep}}})
-   (regex-rule* p/aws-resource-id-re
-                {::group-config
-                 {"type" {::behavior ::keep}
-                  "id" {::behavior ::keep-length}}})
-   (regex-rule* p/long-decimal-re)
-   (regex-rule* p/long-alphanumeric-re
-                {::group-config
-                 {"s" {::behavior ::keep-length}}})])
+(def default-opts
+  {::rules
+   [(regex-rule* p/timestamp-re)
+    (regex-rule* p/mac-colon-re)
+    (regex-rule* p/mac-dash-re)
+    (regex-rule* p/ipv4-re)
+    (regex-rule* p/aws-iam-unique-id-re
+                 {::group-config
+                  {"type" {::behavior ::keep}
+                   "id" {::behavior ::keep-length}}})
+    (regex-rule* p/internal-ec2-hostname-re)
+    (regex-rule* p/arn-re
+                 {::group-config
+                  {"service" {::behavior ::keep}}})
+    (regex-rule* p/aws-resource-id-re
+                 {::group-config
+                  {"type" {::behavior ::keep}
+                   "id" {::behavior ::keep-length}}})
+    (regex-rule* p/long-decimal-re)
+    (regex-rule* p/long-alphanumeric-re
+                 {::group-config
+                  {"s" {::behavior ::keep-length}}})]})
+
+(defn process-opts
+  [opts]
+  (let [opts (sr/setval
+              [(sr/multi-path ec/TREE-KEYS ec/TREE-LEAVES)
+               keyword? sr/NAMESPACE nil?]
+              "latacora.wernicke.core"
+              opts)]
+    (->>
+     opts
+     (merge default-opts)
+     (sr/transform
+      [::rules]
+      (fn [rules]
+        (into
+         (->> opts ::extra-rules (mapv compile-rule))
+         (remove (comp (->> opts ::disabled-rules set) ::name))
+         rules))))))
 
 (defn ^Function ^:private ->Function
   [f]
@@ -142,7 +166,7 @@
     (apply [this arg] (f arg))))
 
 (defn ^:private redact-1
-  [string-to-redact {::keys [hash]}]
+  [string-to-redact {::keys [hash rules]}]
   (let [cover (BitSet. (count string-to-redact))]
     (reduce
      (fn [s {::keys [pattern parsed-pattern group-config]}]
@@ -166,7 +190,7 @@
                      (gen/call-gen rnd 1)
                      rose/root))))))))
      string-to-redact
-     default-rules)))
+     rules)))
 
 (defn ^:private redact-1*
   "Like redact-1, but with logging."
@@ -192,5 +216,7 @@
   "Attempt to automatically redact the structured value.
 
   This is side-effectful because it will generate a new key each time."
-  [x]
-  (redact x {::key (key!)}))
+  ([x opts]
+   (redact x (assoc opts ::key (key!))))
+  ([x]
+   (redact! x default-opts)))
