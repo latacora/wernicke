@@ -10,10 +10,6 @@
 
 (def timestamp-re
   "A regex matching an ISO8601 timestamp as used in AWS."
-  #"20\d{2}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+Z")
-
-(def timestamp-re-1
-  "A regex matching an ISO8601 timestamp as used in AWS."
   (let [year "(?<year>20\\d{2})"
         month "(?<month>[0][1-9]|[1][0-2])"
         day "(?<day>[0][1-9]|[1-2][0-9]|[3][0-1])"
