@@ -132,4 +132,4 @@
         {:keys [exited? value]} (cli-test-harness json args)]
     (t/is (not exited?))
     (t/is (= "" (:err value)))
-    (t/is (= json (:out value)))))
+    (t/is (not= json (:out value)))))
