@@ -19,7 +19,6 @@
         end "(?<rest>\\.\\d+Z)"]
     (re-pattern (format "%s-%s-%sT%s:%s:%s%s" year month day hour minute second end))))
 
-
 (def mac-colon-re
   "A MAC address with colons between the bytes."
   #"([0-9a-f]{2}:){5}([0-9a-f]{2})")
