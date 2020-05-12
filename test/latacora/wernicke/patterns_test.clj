@@ -1,7 +1,10 @@
 (ns latacora.wernicke.patterns-test
   (:require [latacora.wernicke.patterns :as wp]
             [clojure.test :as t]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.test.check.properties :as prop]
+            [clojure.test.check.clojure-test :as tct]
+            [com.gfredericks.test.chuck.generators :as gen']))
 
 (def arns
   "Examples of ARNs.
@@ -48,3 +51,12 @@
   (t/are [s] (not (re-matches wp/aws-iam-unique-id-re s))
     "iddqd"
     "XYZZY"))
+
+(tct/defspec timestamp-digit-boundaries-test
+  (prop/for-all [output (gen'/string-from-regex wp/timestamp-re)]
+                (let [[full year month day hour minute second rest] (re-find wp/timestamp-re output)]
+                  (and (<= (Integer/parseInt month) 12)
+                       (<= (Integer/parseInt day) 31)
+                       (<= (Integer/parseInt hour) 23)
+                       (<= (Integer/parseInt minute) 59)
+                       (<= (Integer/parseInt second) 59)))))

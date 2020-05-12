@@ -10,7 +10,14 @@
 
 (def timestamp-re
   "A regex matching an ISO8601 timestamp as used in AWS."
-  #"20\d{2}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+Z")
+  (let [year "(?<year>20\\d{2})"
+        month "(?<month>[0][1-9]|[1][0-2])"
+        day "(?<day>[0][1-9]|[1-2][0-9]|[3][0-1])"
+        hour "(?<hour>0[0-9]|1[0-9]|2[0-3])"
+        minute "(?<minute>[0-5]\\d)"
+        second "(?<second>[0-5]\\d)"
+        end "(?<rest>\\.\\d+Z)"]
+    (re-pattern (format "%s-%s-%sT%s:%s:%s%s" year month day hour minute second end))))
 
 (def mac-colon-re
   "A MAC address with colons between the bytes."
