@@ -54,14 +54,14 @@
     "XYZZY"))
 
 (tct/defspec timestamp-digit-boundaries-test
-  (prop/for-all [output (gen'/string-from-regex wp/timestamp-re)]
-                (let [[full year month day hour minute second rest] (re-find wp/timestamp-re output)]
-                  (and (<= (Integer/parseInt month) 12)
-                       (<= (Integer/parseInt day) 31)
-                       (<= (Integer/parseInt hour) 23)
-                       (<= (Integer/parseInt minute) 59)
-                       (<= (Integer/parseInt second) 59)))))
-
+  (prop/for-all
+   [output (gen'/string-from-regex wp/timestamp-re)]
+   (let [[_ _ month day hour minute second _] (re-find wp/timestamp-re output)]
+     (and (<= (Integer/parseInt month) 12)
+          (<= (Integer/parseInt day) 31)
+          (<= (Integer/parseInt hour) 23)
+          (<= (Integer/parseInt minute) 59)
+          (<= (Integer/parseInt second) 59)))))
 
 (tct/defspec ipv4-re-leading-zero-test
   (prop/for-all [output (gen'/string-from-regex wp/ipv4-re)]
