@@ -4,5 +4,6 @@
              (clojure.core.match/match)]}}
  :lint-as
  {com.gfredericks.test.chuck.clojure-test/for-all clojure.core/for
+  com.gfredericks.test.chuck.properties/for-all clojure.core/for
   clojure.test.check.properties/for-all clojure.core/for
   clojure.test.check.clojure-test/defspec clojure.test/deftest}}

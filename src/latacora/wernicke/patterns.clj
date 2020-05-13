@@ -32,7 +32,7 @@
   (re-pattern (format "(%s|%s)" mac-colon-re mac-dash-re)))
 
 (def ipv4-octet-re
-  #"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
+  #"(25[0-5]|2[0-4][0-9]|[1][0-9][0-9]|[1-9][0-9]|[0-9])")
 
 (def ipv4-re
   (re-pattern (str/join "\\." (repeat 4 ipv4-octet-re))))
