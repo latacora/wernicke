@@ -61,9 +61,11 @@
                        (<= (Integer/parseInt hour) 23)
                        (<= (Integer/parseInt minute) 59)
                        (<= (Integer/parseInt second) 59)))))
+
 (tct/defspec ip-octet-leading-zero-test
   (prop/for-all [output (gen'/string-from-regex wp/ipv4-octet-re-1)]
                 (if (not= (count output) 1)
                   (not= (str (first output)) "0")
                   true)
                 ))
+
