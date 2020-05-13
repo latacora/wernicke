@@ -62,8 +62,16 @@
                        (<= (Integer/parseInt minute) 59)
                        (<= (Integer/parseInt second) 59)))))
 
+
+(tct/defspec ipv4-re-leading-zero-test
+  (prop/for-all [output (gen'/string-from-regex wp/ipv4-re)]
+                (every? true? (map #(if (not= (count %) 1)
+                                      (not= (str (first %)) "0")
+                                      true) (str/split output #"\.")))))
+
 (tct/defspec ip-octet-leading-zero-test
   (prop/for-all [output (gen'/string-from-regex wp/ipv4-octet-re-1)]
+  (prop/for-all [output (gen'/string-from-regex wp/ipv4-octet-re)]
                 (if (not= (count output) 1)
                   (not= (str (first output)) "0")
                   true)
