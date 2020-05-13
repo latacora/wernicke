@@ -224,6 +224,42 @@ allows you to still do correlation in the result.
 
 Download from https://github.com/latacora/wernicke/releases
 
+## Configuration
+
+We try to do something reasonable for most use cases. If you have a generally
+useful redactions, please consider contributing them. However, sometimes
+redaction behavior really does need to be configured. Pass an EDN literal on the
+command line like so: `wernicke --config '{:some-rules "detailed below"}'`.
+
+Right now this requires a pretty extensive understanding of how wernicke
+works--we want to make this more accessible, though! If there's a specific thing
+you want to accomplish, feel free to write a ticket.
+
+### Adding extra rules
+
+For example, to redact all numbers, add the following structure to your EDN:
+
+```edn
+{:extra-rules
+  [{:name :numbers
+    :type :regex
+    :pattern "\\d*"}]}
+```
+
+The extra rules will be compiled before use, so e.g. you do not need to specify
+the parsed regex structure for this to work.
+
+### Disabling rules by name
+
+Add the following structure to your EDN:
+
+```edn
+{:disabled-rules [:latacora.wernicke.patterns/arn-re]}
+```
+
+This still requires you to know what the rule names are. You can find these in
+`latacora.wernicke.core/default-config`.
+
 ## Development
 
 To run the project directly from a source checkout:
