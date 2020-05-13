@@ -70,7 +70,6 @@
                                       true) (str/split output #"\.")))))
 
 (tct/defspec ip-octet-leading-zero-test
-  (prop/for-all [output (gen'/string-from-regex wp/ipv4-octet-re-1)]
   (prop/for-all [output (gen'/string-from-regex wp/ipv4-octet-re)]
                 (if (not= (count output) 1)
                   (not= (str (first output)) "0")
