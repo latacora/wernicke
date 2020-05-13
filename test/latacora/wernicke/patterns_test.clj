@@ -5,6 +5,7 @@
             [clojure.string :as str]
             [clojure.test.check.properties :as prop]
             [clojure.test.check.clojure-test :as tct]
+            [com.gfredericks.test.chuck.properties :as prop']
             [com.gfredericks.test.chuck.generators :as gen']))
 
 (def arns
@@ -63,16 +64,18 @@
           (<= (Integer/parseInt minute) 59)
           (<= (Integer/parseInt second) 59)))))
 
+(defn prefix-zeroes?
+  "Checks that s has superfluous prefix zeroes."
+  [s]
+  (and (str/starts-with? s "0") (not= s "0")))
+
 (tct/defspec ipv4-re-leading-zero-test
-  (prop/for-all [output (gen'/string-from-regex wp/ipv4-re)]
-                (every? true? (map #(if (not= (count %) 1)
-                                      (not= (str (first %)) "0")
-                                      true) (str/split output #"\.")))))
+  (prop'/for-all
+   [ip (gen'/string-from-regex wp/ipv4-re)
+    :let [octets (str/split ip #"\.")]]
+   (not (some prefix-zeroes? octets))))
 
 (tct/defspec ip-octet-leading-zero-test
-  (prop/for-all [output (gen'/string-from-regex wp/ipv4-octet-re)]
-                (if (not= (count output) 1)
-                  (not= (str (first output)) "0")
-                  true)
-                ))
-
+  (prop/for-all
+   [octet (gen'/string-from-regex wp/ipv4-octet-re)]
+   (not (prefix-zeroes? octet))))
