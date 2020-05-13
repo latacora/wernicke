@@ -2,6 +2,7 @@
   (:require [latacora.wernicke.patterns :as wp]
             [clojure.test :as t]
             [clojure.java.io :as io]
+            [clojure.string :as str]
             [clojure.test.check.properties :as prop]
             [clojure.test.check.clojure-test :as tct]
             [com.gfredericks.test.chuck.generators :as gen']))
@@ -60,3 +61,9 @@
                        (<= (Integer/parseInt hour) 23)
                        (<= (Integer/parseInt minute) 59)
                        (<= (Integer/parseInt second) 59)))))
+(tct/defspec ip-octet-leading-zero-test
+  (prop/for-all [output (gen'/string-from-regex wp/ipv4-octet-re-1)]
+                (if (not= (count output) 1)
+                  (not= (str (first output)) "0")
+                  true)
+                ))
