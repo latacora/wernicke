@@ -2,7 +2,7 @@
   (:require [clojure.data :refer [diff]]
             [latacora.wernicke.core :as wc]
             [latacora.wernicke.patterns :as wp]
-            [latacora.wernicke.patterns-test :refer [arns]]
+            [latacora.wernicke.patterns-test :refer [arns aws-resource-types]]
             [clojure.test :as t]
             [clojure.string :as str]
             [clojure.test.check.generators :as gen]
@@ -279,3 +279,12 @@
         redacted (redact* orig config)]
     (t/testing "explicit extra rules with replacement"
       (t/is (= "Cooking MCs like a pound of brisket" (:lyric redacted))))))
+
+(tct/defspec resource-id-gen
+  (prop/for-all
+   [re-id (gen/elements aws-resource-types)
+    num-id (gen/fmap #(apply str %) (gen/such-that #(>= (count %) 5) (gen/vector gen/nat) 20))]
+   (let [orig-re-id (str re-id "-" num-id)
+         redacted   (redact* orig-re-id)]
+     (= (count (re-seq (re-pattern (str re-id)) redacted)) 1))))
+
