@@ -280,7 +280,7 @@
     (t/testing "explicit extra rules with replacement"
       (t/is (= "Cooking MCs like a pound of brisket" (:lyric redacted))))))
 
-(tct/defspec resource-id-gen
+(tct/defspec resource-id-regex-only-once
   (prop/for-all
    [re-id (gen/elements aws-resource-types)
     num-id (gen/fmap #(apply str %) (gen/such-that #(>= (count %) 5) (gen/vector gen/nat) 20))]
