@@ -137,6 +137,15 @@
                  {::group-config
                   {"type" {::behavior ::keep}
                    "id" {::behavior ::keep-length}}})
+    (regex-rule* p/base16-re
+                 {::group-config
+                  {"s" {::behavior ::keep-length}}})
+    (regex-rule* p/base32-re
+                 {::group-config
+                  {"s" {::behavior ::keep-length}}})
+    (regex-rule* p/base64-re
+                 {::group-config
+                  {"s" {::behavior ::keep-length}}})
     (regex-rule* p/long-decimal-re)
     (regex-rule* p/long-alphanumeric-re
                  {::group-config
