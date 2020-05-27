@@ -280,26 +280,22 @@
     (t/testing "explicit extra rules with replacement"
       (t/is (= "Cooking MCs like a pound of brisket" (:lyric redacted))))))
 
-(t/deftest base16-lenght-test
+(t/deftest base16-length-test
   (let [s "68656C6C6F20776F726C64"]
     (t/is
      (= (count s) (count (redact* s))))))
 
-(tct/defspec base64-length-test
-  (prop/for-all
-   [s (gen'/string-from-regex wp/base64-re)]
-    (= (count s) (count (redact* s)))))
+(t/deftest base32-length-test
+  (let [s "NBSWY3DPEB3W64TMMQ======"]
+    (t/is
+     (= (count s) (count (redact* s))))))
 
-(comment
+(t/deftest base32hex-length-test
+  (let [s "D1IMOR3F41RMUSJCCG======"]
+    (t/is
+     (= (count s) (count (redact* s))))))
 
-  (let [s "Cg=="]
-    (println (count s))
-    (println (redact* s))
-    (println (count (redact* s))))
-
-  (let [s "++=="]
-    (println (count s))
-    (println (redact* s))
-    (println (count (redact* s))))
-
-)
+(t/deftest base64-length-test
+  (let [s "aGVsbG8gd29ybGQK"]
+    (t/is
+     (= (count s) (count (redact* s))))))

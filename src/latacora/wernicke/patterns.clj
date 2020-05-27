@@ -68,10 +68,38 @@
   #"(?<s>[0-9a-fA-F]+)")
 
 (def base32-re
-  "a regex for base32 strings"
-  #"(?<s>(?:[A-Z2-7]{8})+(?:[A-Z2-7]{2}={6}|[A-Z2-7]{4}={4}|[A-Z2-7]{5}={3}|[A-Z2-7]{7}=)?)")
+  "regex built off of RFC4648, final result is as follows:
+  (?<s>^([A-Z2-7]{8})+([A-Z2-7]{2}={6}|[A-Z2-7]{4}={4}|[A-Z2-7]{5}={3}|[A-Z2-7]{7}=)?$)"
+  (let [base "[A-Z2-7]"
+        pad "="
+        quant1 (str base "{8}")
+        quant2 (str base "{2}" pad "{6}")
+        quant3 (str base "{4}" pad "{4}")
+        quant4 (str base "{5}" pad "{3}")
+        quant5 (str base "{7}" pad)
+        quantpads (str/join "|" [quant2 quant3 quant4 quant5])]
+  (re-pattern (str "(?<s>^(" quant1 ")+(" quantpads ")?$)"))))
+
+(def base32hex-re
+  "regex built off of RFC4648, final result is as follows:
+  (?<s>^([0-9A-V]{8})+([0-9A-V]{2}={6}|[0-9A-V]{4}={4}|[0-9A-V]{5}={3}|[0-9A-V]{7}=)?$)"
+  (let [base "[0-9A-V]"
+        pad "="
+        quant1 (str base "{8}")
+        quant2 (str base "{2}" pad "{6}")
+        quant3 (str base "{4}" pad "{4}")
+        quant4 (str base "{5}" pad "{3}")
+        quant5 (str base "{7}" pad)
+        quantpads (str/join "|" [quant2 quant3 quant4 quant5])]
+    (re-pattern (str "(?<s>^(" quant1 ")+(" quantpads ")?$)"))))
 
 (def base64-re
-  "a regex for base64 strings"
-  #"(?<s>(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4}))")
-
+  "regex built off of RFC4648, final result is as follows:
+  (?<s>^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}={2}|[A-Za-z0-9+/]{3}=)?$)"
+  (let [base "[A-Za-z0-9+/]"
+        pad "="
+        quant1 (str base "{4}")
+        quant2 (str base "{2}" pad "{2}")
+        quant3 (str base "{3}" pad)
+        quantpads (str/join "|" [quant2 quant3])]
+    (re-pattern (str "(?<s>^(?:" quant1 ")*(?:" quantpads ")?$)"))))
