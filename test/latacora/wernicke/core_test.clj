@@ -36,7 +36,7 @@
 (def nested
   {:a {:b {:c ["vpc-12345"]
            :d "Constant"}}
-   :h "LongStringToBeRedacted"
+   :h "VeryLongStringToBeRedacted"
    :x [:y :z]})
 
 (t/deftest nested-redact-test
@@ -46,7 +46,7 @@
               :x [:y :z]}
              in-both))
     (t/is (= {:a {:b {:c ["vpc-12345"]}}
-              :h "LongStringToBeRedacted"}
+              :h "VeryLongStringToBeRedacted"}
              only-in-orig))))
 
 (t/deftest re-test
@@ -155,7 +155,7 @@
 
 (defn count-occurrences
   [needle haystack]
-  (-> haystack (str/split (re-pattern needle)) count dec))
+  (->> haystack (re-seq (re-pattern needle)) count))
 
 (tct/defspec no-duplicated-kept-groups
   (let [default-rules (::wc/rules @#'wc/default-opts)
