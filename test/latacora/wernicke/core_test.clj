@@ -286,7 +286,7 @@
      (= (count s) (count (redact* s))))))
 
 (t/deftest base32-length-test
-  (let [s "NBSWY3DPEB3W64TMMQ======"]
+  (let [s "UQBS47X7AVLPIUNRNFS5DLRM46KPMX4X"]
     (t/is
      (= (count s) (count (redact* s))))))
 
@@ -296,6 +296,12 @@
      (= (count s) (count (redact* s))))))
 
 (t/deftest base64-length-test
-  (let [s "aGVsbG8gd29ybGQK"]
+  (let [s "2eYfFcIzE1IPUgzrrXs="]
     (t/is
      (= (count s) (count (redact* s))))))
+
+(tct/defspec base64-verbose-length-test
+  (prop/for-all
+   [s (gen'/string-from-regex wp/base64-re)]
+    (= (count s) (count (redact* s)))))
+
