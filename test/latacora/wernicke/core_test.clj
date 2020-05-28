@@ -280,28 +280,24 @@
     (t/testing "explicit extra rules with replacement"
       (t/is (= "Cooking MCs like a pound of brisket" (:lyric redacted))))))
 
-(t/deftest base16-length-test
-  (let [s "68656C6C6F20776F726C64"]
-    (t/is
-     (= (count s) (count (redact* s))))))
+(tct/defspec base16-re-properties-test
+  (prop/for-all
+   [s (gen'/string-from-regex wp/base16-re)]
+   (t/is (= (count s) (count (redact* s))))
+   (t/is (not= s (redact* s)))))
 
-(t/deftest base32-length-test
-  (let [s "UQBS47X7AVLPIUNRNFS5DLRM46KPMX4X"]
-    (t/is
-     (= (count s) (count (redact* s))))))
+(tct/defspec base32-re-properties-test
+  (prop/for-all
+   [s (gen'/string-from-regex wp/base32-re)]
+   (t/is (= (count s) (count (redact* s))))
+   (t/is (not= s (redact* s)))
+   (t/is (= (count (re-find #"=+" s)) (count (re-find #"=+" (redact* s)))))))
 
-(t/deftest base32hex-length-test
-  (let [s "D1IMOR3F41RMUSJCCG======"]
-    (t/is
-     (= (count s) (count (redact* s))))))
-
-(t/deftest base64-length-test
-  (let [s "2eYfFcIzE1IPUgzrrXs="]
-    (t/is
-     (= (count s) (count (redact* s))))))
-
-(tct/defspec base64-verbose-length-test
+(tct/defspec base64-re-properties-test
   (prop/for-all
    [s (gen'/string-from-regex wp/base64-re)]
-    (= (count s) (count (redact* s)))))
+   (t/is (= (count s) (count (redact* s))))
+   (t/is (not= s (redact* s)))
+   (t/is (= (count (re-find #"=+" s)) (count (re-find #"=+" (redact* s)))))))
+
 
