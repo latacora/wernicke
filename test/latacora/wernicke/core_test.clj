@@ -10,7 +10,9 @@
             [clojure.test.check.clojure-test :as tct]
             [com.gfredericks.test.chuck.generators :as gen']
             [com.gfredericks.test.chuck.regexes :as cre]
-            [com.gfredericks.test.chuck.clojure-test :as tct']))
+            [com.gfredericks.test.chuck.clojure-test :as tct']
+            [multiformats.base :as mbase]
+            [alphabase.bytes :as b]))
 
 (t/deftest keygen-test
   (t/is (-> (#'wc/key!) count (= 16))))
@@ -282,22 +284,32 @@
 
 (tct/defspec base16-re-properties-test
   (prop/for-all
-   [s (gen'/string-from-regex wp/base16-re)]
+   [s (gen/fmap #(mbase/format :base32pad (b/random-bytes %)) (gen/choose 32 128))]
    (t/is (= (count s) (count (redact* s))))
    (t/is (not= s (redact* s)))))
 
 (tct/defspec base32-re-properties-test
   (prop/for-all
-   [s (gen'/string-from-regex wp/base32-re)]
+   [s (gen/fmap #(mbase/format :BASE32PAD (b/random-bytes %)) (gen/choose 32 128))]
    (t/is (= (count s) (count (redact* s))))
    (t/is (not= s (redact* s)))
    (t/is (= (count (re-find #"=+" s)) (count (re-find #"=+" (redact* s)))))))
 
 (tct/defspec base64-re-properties-test
   (prop/for-all
-   [s (gen'/string-from-regex wp/base64-re)]
+   [s (gen/fmap #(mbase/format :base64pad (b/random-bytes %)) (gen/choose 32 128))]
    (t/is (= (count s) (count (redact* s))))
    (t/is (not= s (redact* s)))
    (t/is (= (count (re-find #"=+" s)) (count (re-find #"=+" (redact* s)))))))
+
+(t/deftest base32pad-mbase-check
+  (t/is (= :base32pad (:base (mbase/inspect "cl3jkxlfk4dby23u7livcawftnnbt6xl4ohs6izhpjhpnoarazghzbnsucd76yrfa7pyznt2263bwq633ukuyi452xfkhyiy=")))))
+
+(t/deftest BASE32PAD-mbase-check
+  (t/is (= :BASE32PAD (:base (mbase/inspect "CFWKREZXM4FFG7KTZ2J4S76DVUDIXIWFKS23VO5HAZQJWAZAKU5PUS7OFXDJ56T5XTNW4FNKBRSXVEFP6KETT2ZXMVO6HOA2A6DVOBZTIPME3AQNRIQUQAYF45M7E4R4LEJXPXC2ZHCUGBGKH")))))
+
+(tct/defspec base32-re-check
+  (prop/for-all [output (gen'/string-from-regex wp/base32-re)]
+                (t/is (= :BASE32PAD (:base (mbase/inspect output))))))
 
 

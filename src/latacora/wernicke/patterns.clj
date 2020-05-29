@@ -68,13 +68,8 @@
   #"(?<s>[0-9a-fA-F]{24,})")
 
 (def base32-re
-  "A regex for matching base32 strings"
-  (let [base "[A-Z2-7]"
-        pad "="]
-    (re-pattern (str "(?<s>" base "{32,})(?<pad>" pad "{0,3})"))))
+  #"(?<s>[A-Z2-7]{32,})(?<pad>={0,6})")
 
 (def base64-re
-  "A regex for matching base64 strings"
-  (let [base "[A-Za-z0-9+/]"
-        pad "="]
-    (re-pattern (str "(?<s>" base "{32,})(?<pad>" pad "{0,3})"))))
+  #"(?<s>[A-Za-z0-9+/]{32,})(?<pad>={0,3})")
+
