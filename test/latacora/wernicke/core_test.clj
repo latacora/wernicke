@@ -284,20 +284,20 @@
       (t/is (= "Cooking MCs like a pound of brisket" (:lyric redacted))))))
 
 (tct/defspec base16-re-properties-test
-  (prop/for-all
+  (tct'/for-all
    [s (gen/fmap #(mbase/format :base32pad (b/random-bytes %)) (gen/choose 32 128))]
    (t/is (= (count s) (count (redact* s))))
    (t/is (not= s (redact* s)))))
 
 (tct/defspec base32-re-properties-test
-  (prop/for-all
+  (tct'/for-all
    [s (gen/fmap #(mbase/format :BASE32PAD (b/random-bytes %)) (gen/choose 32 128))]
    (t/is (= (count s) (count (redact* s))))
    (t/is (not= s (redact* s)))
    (t/is (= (count (re-find #"=+" s)) (count (re-find #"=+" (redact* s)))))))
 
 (tct/defspec base64-re-properties-test
-  (prop/for-all
+  (tct'/for-all
    [s (gen/fmap #(mbase/format :base64pad (b/random-bytes %)) (gen/choose 32 128))]
    (t/is (= (count s) (count (redact* s))))
    (t/is (not= s (redact* s)))
