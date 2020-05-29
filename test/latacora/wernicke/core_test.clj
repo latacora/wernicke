@@ -155,10 +155,6 @@
     (when (.matches m)
       (.group m group))))
 
-(defn count-occurrences
-  [needle haystack]
-  (->> haystack (re-seq (re-pattern needle)) count))
-
 (tct/defspec no-duplicated-kept-groups
   (let [default-rules (::wc/rules @#'wc/default-opts)
         kept-groups (->>
@@ -174,10 +170,15 @@
      [pattern (-> kept-groups keys gen/elements)
       fixed-group-name (-> pattern kept-groups gen/elements)
       orig (-> pattern gen'/string-from-regex)
-      :let [redacted (redact* orig)
-            redacted-fixed-val (re-group pattern redacted fixed-group-name)]]
-     (t/is (= 1 (count-occurrences redacted-fixed-val redacted)))
-     (t/is (= (re-group pattern orig fixed-group-name) redacted-fixed-val)))))
+      :let [redacted (redact* orig
+                              (update
+                               @#'wc/default-opts
+                               ::wc/rules
+                               (fn [rules]
+                                 (filter #(= pattern (::wc/pattern %)) rules))))
+            redacted-fixed-val (re-group pattern redacted fixed-group-name)
+            orig-fixed-val (re-group pattern orig fixed-group-name)]]
+     (t/is (= orig-fixed-val redacted-fixed-val)))))
 
 (t/deftest aws-iam-unique-id-tests
   (let [before {:a (str "AKIA" (str/join (repeat 16 "X")))
