@@ -302,12 +302,6 @@
    (t/is (not= s (redact* s)))
    (t/is (= (count (re-find #"=+" s)) (count (re-find #"=+" (redact* s)))))))
 
-(t/deftest base32pad-mbase-check
-  (t/is (= :base32pad (:base (mbase/inspect "cl3jkxlfk4dby23u7livcawftnnbt6xl4ohs6izhpjhpnoarazghzbnsucd76yrfa7pyznt2263bwq633ukuyi452xfkhyiy=")))))
-
-(t/deftest BASE32PAD-mbase-check
-  (t/is (= :BASE32PAD (:base (mbase/inspect "CFWKREZXM4FFG7KTZ2J4S76DVUDIXIWFKS23VO5HAZQJWAZAKU5PUS7OFXDJ56T5XTNW4FNKBRSXVEFP6KETT2ZXMVO6HOA2A6DVOBZTIPME3AQNRIQUQAYF45M7E4R4LEJXPXC2ZHCUGBGKH")))))
-
 (tct/defspec base32-re-check
   (prop/for-all [output (gen'/string-from-regex wp/base32-re)]
                 (t/is (= :BASE32PAD (:base (mbase/inspect output))))))
