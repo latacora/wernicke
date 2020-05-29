@@ -307,5 +307,3 @@
   (prop/for-all
    [output (gen'/string-from-regex wp/base32-re)]
    (t/is (= :BASE32PAD (:base (mbase/inspect output))))))
-
-
