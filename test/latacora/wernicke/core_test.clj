@@ -304,7 +304,8 @@
    (t/is (= (count (re-find #"=+" s)) (count (re-find #"=+" (redact* s)))))))
 
 (tct/defspec base32-re-check
-  (prop/for-all [output (gen'/string-from-regex wp/base32-re)]
-                (t/is (= :BASE32PAD (:base (mbase/inspect output))))))
+  (prop/for-all
+   [output (gen'/string-from-regex wp/base32-re)]
+   (t/is (= :BASE32PAD (:base (mbase/inspect output))))))
 
 
