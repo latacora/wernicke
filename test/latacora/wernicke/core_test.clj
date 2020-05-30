@@ -25,6 +25,15 @@
   ([x opts]
    (#'wc/redact x (assoc opts ::wc/key zero-key))))
 
+(defn just-one-pattern
+  "Creates opts that only match a single pattern."
+  [pattern]
+  (update
+   @#'wc/default-opts
+   ::wc/rules
+   (fn [rules]
+     (filter #(= pattern (::wc/pattern %)) rules))))
+
 (t/deftest redact-test
   (t/are [x] (= x (redact* x))
     {}
@@ -170,12 +179,7 @@
      [pattern (-> kept-groups keys gen/elements)
       fixed-group-name (-> pattern kept-groups gen/elements)
       orig (-> pattern gen'/string-from-regex)
-      :let [redacted (redact* orig
-                              (update
-                               @#'wc/default-opts
-                               ::wc/rules
-                               (fn [rules]
-                                 (filter #(= pattern (::wc/pattern %)) rules))))
+      :let [redacted (redact* orig (just-one-pattern pattern))
             redacted-fixed-val (re-group pattern redacted fixed-group-name)
             orig-fixed-val (re-group pattern orig fixed-group-name)]]
      (t/is (= orig-fixed-val redacted-fixed-val)))))
@@ -228,12 +232,7 @@
 
 (t/deftest redaction-with-opts-tests
   (let [orig {:vpc "vpc-12345" :ip "10.0.0.1"}
-        ip-rule-config (update
-                        @#'wc/default-opts
-                        ::wc/rules
-                        (fn [rules]
-                          (filter #(= ::wp/ipv4-re (::wc/name %)) rules)))
-        redacted (redact* orig ip-rule-config)]
+        redacted (redact* orig (just-one-pattern wp/ipv4-re))]
     (t/testing "explicit rule just for ipv4 addresses"
       (t/is (= (:vpc orig) (:vpc redacted)))
       (t/is (not= (:ip orig) (:ip redacted)))))
