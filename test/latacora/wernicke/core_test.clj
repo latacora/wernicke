@@ -284,7 +284,7 @@
 
 (defn padding
   [s]
-  (count (re-find #"=+" s)))
+  (count (re-find #"=+$" s)))
 
 (tct/defspec basenn-re-properties-test
   (tct'/for-all
