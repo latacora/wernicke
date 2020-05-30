@@ -282,22 +282,17 @@
     (t/testing "explicit extra rules with replacement"
       (t/is (= "Cooking MCs like a pound of brisket" (:lyric redacted))))))
 
-(tct/defspec base16-re-properties-test
-  (tct'/for-all
-   [s (gen/fmap #(mbase/format :base32pad (b/random-bytes %)) (gen/choose 32 128))]
-   (t/is (= (count s) (count (redact* s))))
-   (t/is (not= s (redact* s)))))
+(defn padding
+  [s]
+  (count (re-find #"=+" s)))
 
-(tct/defspec base32-re-properties-test
+(tct/defspec basenn-re-properties-test
   (tct'/for-all
-   [s (gen/fmap #(mbase/format :BASE32PAD (b/random-bytes %)) (gen/choose 32 128))]
-   (t/is (= (count s) (count (redact* s))))
-   (t/is (not= s (redact* s)))
-   (t/is (= (count (re-find #"=+" s)) (count (re-find #"=+" (redact* s)))))))
-
-(tct/defspec base64-re-properties-test
-  (tct'/for-all
-   [s (gen/fmap #(mbase/format :base64pad (b/random-bytes %)) (gen/choose 32 128))]
-   (t/is (= (count s) (count (redact* s))))
-   (t/is (not= s (redact* s)))
-   (t/is (= (count (re-find #"=+" s)) (count (re-find #"=+" (redact* s)))))))
+   [encoding (gen/elements [:base16 :BASE16 :base32pad :BASE32PAD :base64pad])
+    size (gen/choose 32 128)
+    :let [raw (b/random-bytes size)
+          orig (mbase/format encoding raw)
+          redacted (redact* orig)]]
+   (t/is (not= orig redacted))
+   (t/is (= (count orig) (count redacted)))
+   (t/is (= (padding orig) (padding redacted)))))
