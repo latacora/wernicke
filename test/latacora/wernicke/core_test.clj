@@ -155,7 +155,7 @@
                  (map ::wc/pattern)
                  gen/elements)
     orig (gen'/string-from-regex pattern)
-    :let [redacted (wc/redact! orig)]]
+    :let [redacted (wc/redact! orig (just-one-pattern pattern))]]
    (t/is (re-matches pattern redacted))))
 
 (defn re-group
