@@ -25,6 +25,15 @@
   ([x opts]
    (#'wc/redact x (assoc opts ::wc/key zero-key))))
 
+(defn just-one-pattern
+  "Creates opts that only match a single pattern."
+  [pattern]
+  (update
+   @#'wc/default-opts
+   ::wc/rules
+   (fn [rules]
+     (filter #(= pattern (::wc/pattern %)) rules))))
+
 (t/deftest redact-test
   (t/are [x] (= x (redact* x))
     {}
@@ -146,7 +155,7 @@
                  (map ::wc/pattern)
                  gen/elements)
     orig (gen'/string-from-regex pattern)
-    :let [redacted (wc/redact! orig)]]
+    :let [redacted (wc/redact! orig (just-one-pattern pattern))]]
    (t/is (re-matches pattern redacted))))
 
 (defn re-group
@@ -154,10 +163,6 @@
   (let [m (re-matcher re s)]
     (when (.matches m)
       (.group m group))))
-
-(defn count-occurrences
-  [needle haystack]
-  (->> haystack (re-seq (re-pattern needle)) count))
 
 (tct/defspec no-duplicated-kept-groups
   (let [default-rules (::wc/rules @#'wc/default-opts)
@@ -174,10 +179,10 @@
      [pattern (-> kept-groups keys gen/elements)
       fixed-group-name (-> pattern kept-groups gen/elements)
       orig (-> pattern gen'/string-from-regex)
-      :let [redacted (redact* orig)
-            redacted-fixed-val (re-group pattern redacted fixed-group-name)]]
-     (t/is (= 1 (count-occurrences redacted-fixed-val redacted)))
-     (t/is (= (re-group pattern orig fixed-group-name) redacted-fixed-val)))))
+      :let [redacted (redact* orig (just-one-pattern pattern))
+            redacted-fixed-val (re-group pattern redacted fixed-group-name)
+            orig-fixed-val (re-group pattern orig fixed-group-name)]]
+     (t/is (= orig-fixed-val redacted-fixed-val)))))
 
 (t/deftest aws-iam-unique-id-tests
   (let [before {:a (str "AKIA" (str/join (repeat 16 "X")))
@@ -227,12 +232,7 @@
 
 (t/deftest redaction-with-opts-tests
   (let [orig {:vpc "vpc-12345" :ip "10.0.0.1"}
-        ip-rule-config (update
-                        @#'wc/default-opts
-                        ::wc/rules
-                        (fn [rules]
-                          (filter #(= ::wp/ipv4-re (::wc/name %)) rules)))
-        redacted (redact* orig ip-rule-config)]
+        redacted (redact* orig (just-one-pattern wp/ipv4-re))]
     (t/testing "explicit rule just for ipv4 addresses"
       (t/is (= (:vpc orig) (:vpc redacted)))
       (t/is (not= (:ip orig) (:ip redacted)))))
@@ -282,34 +282,17 @@
     (t/testing "explicit extra rules with replacement"
       (t/is (= "Cooking MCs like a pound of brisket" (:lyric redacted))))))
 
-(tct/defspec base16-re-properties-test
-  (prop/for-all
-   [s (gen/fmap #(mbase/format :base32pad (b/random-bytes %)) (gen/choose 32 128))]
-   (t/is (= (count s) (count (redact* s))))
-   (t/is (not= s (redact* s)))))
+(defn padding
+  [s]
+  (count (re-find #"=+$" s)))
 
-(tct/defspec base32-re-properties-test
-  (prop/for-all
-   [s (gen/fmap #(mbase/format :BASE32PAD (b/random-bytes %)) (gen/choose 32 128))]
-   (t/is (= (count s) (count (redact* s))))
-   (t/is (not= s (redact* s)))
-   (t/is (= (count (re-find #"=+" s)) (count (re-find #"=+" (redact* s)))))))
-
-(tct/defspec base64-re-properties-test
-  (prop/for-all
-   [s (gen/fmap #(mbase/format :base64pad (b/random-bytes %)) (gen/choose 32 128))]
-   (t/is (= (count s) (count (redact* s))))
-   (t/is (not= s (redact* s)))
-   (t/is (= (count (re-find #"=+" s)) (count (re-find #"=+" (redact* s)))))))
-
-(t/deftest base32pad-mbase-check
-  (t/is (= :base32pad (:base (mbase/inspect "cl3jkxlfk4dby23u7livcawftnnbt6xl4ohs6izhpjhpnoarazghzbnsucd76yrfa7pyznt2263bwq633ukuyi452xfkhyiy=")))))
-
-(t/deftest BASE32PAD-mbase-check
-  (t/is (= :BASE32PAD (:base (mbase/inspect "CFWKREZXM4FFG7KTZ2J4S76DVUDIXIWFKS23VO5HAZQJWAZAKU5PUS7OFXDJ56T5XTNW4FNKBRSXVEFP6KETT2ZXMVO6HOA2A6DVOBZTIPME3AQNRIQUQAYF45M7E4R4LEJXPXC2ZHCUGBGKH")))))
-
-(tct/defspec base32-re-check
-  (prop/for-all [output (gen'/string-from-regex wp/base32-re)]
-                (t/is (= :BASE32PAD (:base (mbase/inspect output))))))
-
-
+(tct/defspec basenn-re-properties-test
+  (tct'/for-all
+   [encoding (gen/elements [:base16 :BASE16 :base32pad :BASE32PAD :base64pad])
+    size (gen/choose 32 128)
+    :let [raw (b/random-bytes size)
+          orig (mbase/format encoding raw)
+          redacted (redact* orig)]]
+   (t/is (not= orig redacted))
+   (t/is (= (count orig) (count redacted)))
+   (t/is (= (padding orig) (padding redacted)))))
