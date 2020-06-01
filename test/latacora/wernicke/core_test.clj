@@ -10,7 +10,9 @@
             [clojure.test.check.clojure-test :as tct]
             [com.gfredericks.test.chuck.generators :as gen']
             [com.gfredericks.test.chuck.regexes :as cre]
-            [com.gfredericks.test.chuck.clojure-test :as tct']))
+            [com.gfredericks.test.chuck.clojure-test :as tct']
+            [multiformats.base :as mbase]
+            [alphabase.bytes :as b]))
 
 (t/deftest keygen-test
   (t/is (-> (#'wc/key!) count (= 16))))
@@ -22,6 +24,15 @@
    (redact* x wc/default-opts))
   ([x opts]
    (#'wc/redact x (assoc opts ::wc/key zero-key))))
+
+(defn just-one-pattern
+  "Creates opts that only match a single pattern."
+  [pattern]
+  (update
+   @#'wc/default-opts
+   ::wc/rules
+   (fn [rules]
+     (filter #(= pattern (::wc/pattern %)) rules))))
 
 (t/deftest redact-test
   (t/are [x] (= x (redact* x))
@@ -36,7 +47,7 @@
 (def nested
   {:a {:b {:c ["vpc-12345"]
            :d "Constant"}}
-   :h "LongStringToBeRedacted"
+   :h "VeryLongStringToBeRedacted"
    :x [:y :z]})
 
 (t/deftest nested-redact-test
@@ -46,7 +57,7 @@
               :x [:y :z]}
              in-both))
     (t/is (= {:a {:b {:c ["vpc-12345"]}}
-              :h "LongStringToBeRedacted"}
+              :h "VeryLongStringToBeRedacted"}
              only-in-orig))))
 
 (t/deftest re-test
@@ -144,7 +155,7 @@
                  (map ::wc/pattern)
                  gen/elements)
     orig (gen'/string-from-regex pattern)
-    :let [redacted (wc/redact! orig)]]
+    :let [redacted (wc/redact! orig (just-one-pattern pattern))]]
    (t/is (re-matches pattern redacted))))
 
 (defn re-group
@@ -152,10 +163,6 @@
   (let [m (re-matcher re s)]
     (when (.matches m)
       (.group m group))))
-
-(defn count-occurrences
-  [needle haystack]
-  (-> haystack (str/split (re-pattern needle)) count dec))
 
 (tct/defspec no-duplicated-kept-groups
   (let [default-rules (::wc/rules @#'wc/default-opts)
@@ -172,10 +179,10 @@
      [pattern (-> kept-groups keys gen/elements)
       fixed-group-name (-> pattern kept-groups gen/elements)
       orig (-> pattern gen'/string-from-regex)
-      :let [redacted (redact* orig)
-            redacted-fixed-val (re-group pattern redacted fixed-group-name)]]
-     (t/is (= 1 (count-occurrences redacted-fixed-val redacted)))
-     (t/is (= (re-group pattern orig fixed-group-name) redacted-fixed-val)))))
+      :let [redacted (redact* orig (just-one-pattern pattern))
+            redacted-fixed-val (re-group pattern redacted fixed-group-name)
+            orig-fixed-val (re-group pattern orig fixed-group-name)]]
+     (t/is (= orig-fixed-val redacted-fixed-val)))))
 
 (t/deftest aws-iam-unique-id-tests
   (let [before {:a (str "AKIA" (str/join (repeat 16 "X")))
@@ -225,12 +232,7 @@
 
 (t/deftest redaction-with-opts-tests
   (let [orig {:vpc "vpc-12345" :ip "10.0.0.1"}
-        ip-rule-config (update
-                        @#'wc/default-opts
-                        ::wc/rules
-                        (fn [rules]
-                          (filter #(= ::wp/ipv4-re (::wc/name %)) rules)))
-        redacted (redact* orig ip-rule-config)]
+        redacted (redact* orig (just-one-pattern wp/ipv4-re))]
     (t/testing "explicit rule just for ipv4 addresses"
       (t/is (= (:vpc orig) (:vpc redacted)))
       (t/is (not= (:ip orig) (:ip redacted)))))
@@ -279,3 +281,18 @@
         redacted (redact* orig config)]
     (t/testing "explicit extra rules with replacement"
       (t/is (= "Cooking MCs like a pound of brisket" (:lyric redacted))))))
+
+(defn padding
+  [s]
+  (count (re-find #"=+$" s)))
+
+(tct/defspec basenn-re-properties-test
+  (tct'/for-all
+   [encoding (gen/elements [:base16 :BASE16 :base32pad :BASE32PAD :base64pad])
+    size (gen/choose 32 128)
+    :let [raw (b/random-bytes size)
+          orig (mbase/format encoding raw)
+          redacted (redact* orig)]]
+   (t/is (not= orig redacted))
+   (t/is (= (count orig) (count redacted)))
+   (t/is (= (padding orig) (padding redacted)))))

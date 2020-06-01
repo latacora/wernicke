@@ -12,7 +12,8 @@
  :aliases
  {:test {:main-opts ["-m" "kaocha.runner"]
          :extra-paths ["test-resources" "test"]
-         :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-529"}}}
+         :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-529"}
+                      mvxcvi/multiformats {:mvn/version "0.2.1"}}}
   :native-image
   {:main-opts ["-m clj.native-image latacora.wernicke.cli"
                "--verbose"

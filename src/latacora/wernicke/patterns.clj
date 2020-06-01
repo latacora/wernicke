@@ -41,8 +41,8 @@
   #"[0-9]{5,}")
 
 (def long-alphanumeric-re
-  "A regex for long (12+) alphanumeric strings."
-  #"(?<s>[A-Za-z0-9]{12,})")
+  "A regex for long (24+) alphanumeric strings."
+  #"(?<s>[A-Za-z0-9]{24,})")
 
 (def internal-ec2-hostname-re
   (let [ip-part (str/join "-" (repeat 4 ipv4-octet-re))
@@ -62,3 +62,18 @@
 
   See https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-unique-ids"
   #"(?<type>AAGA|ACCA|AGPA|AIDA|AIPA|AKIA|ANPA|ANVA|APKA|AROA|ASCA|ASIA)(?<id>[A-Z0-9]{16,})")
+
+(def base16-re
+  "A regex for base16 or hex strings"
+  #"(?<s>[0-9a-f]{24,})")
+
+(def base16-re-uppercase
+  "A regex for base16 or hex strings"
+  #"(?<s>[0-9A-F]{24,})")
+
+(def base32-re
+  #"(?<s>[A-Z2-7]{32,})(?<pad>={0,6})")
+
+(def base64-re
+  #"(?<s>[A-Za-z0-9+/]{32,})(?<pad>={0,3})")
+
