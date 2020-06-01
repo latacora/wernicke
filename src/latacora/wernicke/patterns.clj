@@ -41,7 +41,7 @@
   #"[0-9]{5,}")
 
 (def long-alphanumeric-re
-  "A regex for long (12+) alphanumeric strings."
+  "A regex for long (24+) alphanumeric strings."
   #"(?<s>[A-Za-z0-9]{24,})")
 
 (def internal-ec2-hostname-re
@@ -65,7 +65,11 @@
 
 (def base16-re
   "A regex for base16 or hex strings"
-  #"(?<s>[0-9a-fA-F]{24,})")
+  #"(?<s>[0-9a-f]{24,})")
+
+(def base16-re-uppercase
+  "A regex for base16 or hex strings"
+  #"(?<s>[0-9A-F]{24,})")
 
 (def base32-re
   #"(?<s>[A-Z2-7]{32,})(?<pad>={0,6})")
