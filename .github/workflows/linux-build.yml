@@ -3,7 +3,9 @@ name: Linux build
 
 on:
   push:
-    branches: [ master add-binary-run-test]
+    branches:
+      - master
+      - add-binary-run-test 
 
 jobs:
   build:
