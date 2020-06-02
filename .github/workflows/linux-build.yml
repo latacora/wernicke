@@ -46,8 +46,9 @@ jobs:
       - name: Run Binary
         run: ./wernicke
 
-      - name: Run Binary
-        run: printf "{\"vpc-12345\": \"sg-12345\"}" | ./wernicke
+      - name: Run Binary Again
+        run: |
+          printf '{"vpc-12345": "sg-12345"}' | ./wernicke
 
       - name: Run upx
         run: upx wernicke
