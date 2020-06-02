@@ -38,6 +38,9 @@ jobs:
       - name: Build native-image
         run: clojure -A:native-image
 
+      - name: Run Binary
+        run: ./wernicke
+
       - name: Run upx
         run: upx wernicke
 
