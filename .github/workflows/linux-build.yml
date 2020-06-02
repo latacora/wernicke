@@ -40,8 +40,14 @@ jobs:
       - name: Build native-image
         run: clojure -A:native-image
 
+      - name: Run ls
+        run: ls
+
       - name: Run Binary
         run: ./wernicke
+
+      - name: Run Binary
+        run: printf "{\"vpc-12345\": \"sg-12345\"}" | ./wernicke
 
       - name: Run upx
         run: upx wernicke
