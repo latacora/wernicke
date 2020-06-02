@@ -3,7 +3,7 @@ name: macOS build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master add-binary-run-test]
 
 jobs:
   build:
