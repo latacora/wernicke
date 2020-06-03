@@ -38,7 +38,7 @@ jobs:
         run: sudo apt-get install upx
 
       - name: Build native-image
-        run: clojure -A:native-image
+        run: clojure -A:native-image --static
 
       - name: Run ls
         run: ls
