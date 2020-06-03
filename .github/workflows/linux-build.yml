@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - master
-      - add-binary-run-test 
 
 jobs:
   build:
@@ -16,7 +15,6 @@ jobs:
       - name: Setup GraalVM CE
         uses: DeLaGuardo/setup-graalvm@3
         with:
-          # https://github.com/oracle/graal/issues/2177
           graalvm-version: '20.1.0.java11'
 
       - name: Setup native-image
@@ -40,13 +38,7 @@ jobs:
       - name: Build native-image
         run: clojure -A:native-image --static
 
-      - name: Run ls
-        run: ls
-
       - name: Run Binary
-        run: ./wernicke
-
-      - name: Run Binary Again
         run: |
           printf '{"vpc-12345": "sg-12345"}' | ./wernicke
 
