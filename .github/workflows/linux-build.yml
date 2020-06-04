@@ -3,7 +3,8 @@ name: Linux build
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
 
 jobs:
   build:
@@ -14,8 +15,7 @@ jobs:
       - name: Setup GraalVM CE
         uses: DeLaGuardo/setup-graalvm@3
         with:
-          # https://github.com/oracle/graal/issues/2177
-          graalvm-version: '19.3.0.java11'
+          graalvm-version: '20.1.0.java11'
 
       - name: Setup native-image
         run: |
@@ -36,7 +36,11 @@ jobs:
         run: sudo apt-get install upx
 
       - name: Build native-image
-        run: clojure -A:native-image
+        run: clojure -A:native-image --static
+
+      - name: Run Binary
+        run: |
+          printf '{"vpc-12345": "sg-12345"}' | ./wernicke
 
       - name: Run upx
         run: upx wernicke
