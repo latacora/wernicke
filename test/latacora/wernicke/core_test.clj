@@ -282,14 +282,6 @@
     (t/testing "explicit extra rules with replacement"
       (t/is (= "Cooking MCs like a pound of brisket" (:lyric redacted))))))
 
-(defn basenn-encoding-case
-  [encoding]
-  (case encoding
-    :base16 (just-one-pattern wp/base16-re)
-    :BASE16 (just-one-pattern wp/base16-re-uppercase)
-    :BASE32PAD (just-one-pattern wp/base32-re)
-    :base64pad (just-one-pattern wp/base64-re)))
-
 (defn padding
   [s]
   (count (re-find #"=+$" s)))
@@ -300,7 +292,8 @@
     size (gen/choose 32 128)
     :let [raw (b/random-bytes size)
           orig (mbase/format encoding raw)
-          config (basenn-encoding-case encoding)
+          config (just-one-pattern (encoding {:base16 wp/base16-re :BASE16 wp/base16-re-uppercase
+                                              :BASE32PAD wp/base32-re :base64pad wp/base64-re}))
           redacted (redact* orig config)]]
    (t/is (not= orig redacted))
    (t/is (= (count orig) (count redacted)))
