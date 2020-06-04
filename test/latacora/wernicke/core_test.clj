@@ -288,11 +288,13 @@
 
 (tct/defspec basenn-re-properties-test
   (tct'/for-all
-   [encoding (gen/elements [:base16 :BASE16 :base32pad :BASE32PAD :base64pad])
+   [encoding (gen/elements [:base16 :BASE16 :BASE32PAD :base64pad])
     size (gen/choose 32 128)
     :let [raw (b/random-bytes size)
           orig (mbase/format encoding raw)
-          redacted (redact* orig)]]
+          config (just-one-pattern (encoding {:base16 wp/base16-re :BASE16 wp/base16-re-uppercase
+                                              :BASE32PAD wp/base32-re :base64pad wp/base64-re}))
+          redacted (redact* orig config)]]
    (t/is (not= orig redacted))
    (t/is (= (count orig) (count redacted)))
    (t/is (= (padding orig) (padding redacted)))))
