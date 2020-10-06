@@ -72,6 +72,9 @@
                          wp/ipv4-re]
 
                         ["123456789" ;; ec2 requester-id, owner-id...
+                         wp/decimal-re]
+
+                        ["123456789012" ;; aws account ids...
                          wp/long-decimal-re]
 
                         ["ip-10-0-0-1.ec2.internal"

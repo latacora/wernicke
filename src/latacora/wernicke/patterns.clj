@@ -37,8 +37,11 @@
 (def ipv4-re
   (re-pattern (str/join "\\." (repeat 4 ipv4-octet-re))))
 
-(def long-decimal-re
+(def decimal-re
   #"[0-9]{5,}")
+
+(def long-decimal-re
+   #"(?<s>[0-9]{12,})")
 
 (def long-alphanumeric-re
   "A regex for long (24+) alphanumeric strings."
@@ -53,7 +56,7 @@
   (let [partition "aws"
         service "(?<service>[a-z0-9\\-]{2,20})"
         region "(?<region>((us|eu)-(west|east)(-\\d)?)|\\*)?"
-        account (str "(?<account>" long-decimal-re "|\\*)?")
+        account (str "(?<account>" decimal-re "|\\*)?")
         resource "[A-Za-z0-9\\-\\._ */:]+"]
     (re-pattern (str/join ":" ["arn" partition service region account resource]))))
 
