@@ -18,15 +18,15 @@ jobs:
           java-version: 11
 
       - name: Setup Clojure
-        uses: DeLaGuardo/setup-clojure@2.0
+        uses: DeLaGuardo/setup-clojure@91054c3b9dc15fdc6a2f45be47405d891e672ef0
         with:
-          tools-deps: "latest"
+          cli: latest
 
       - name: Show Clojure env details
         run: clojure -Sdescribe
 
       - name: Lint with clj-kondo
-        uses: DeLaGuardo/clojure-lint-action@master
+        uses: DeLaGuardo/clojure-lint-action@f712330e03eec4daa36da7045213190083aca4dd
         with:
           clj-kondo-args: --lint src test
           version: '2020.04.05'
