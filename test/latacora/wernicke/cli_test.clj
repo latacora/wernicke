@@ -45,7 +45,10 @@
 
 (defn cli-test-harness
   [in-str args]
-  (with-in-str in-str (with-fake-exit (with-captured-output (apply cli/-main args)))))
+  (with-in-str in-str
+    (with-fake-exit
+      (with-captured-output
+        (apply cli/-main args)))))
 
 (def help-lines
   ["Redact structured data."
