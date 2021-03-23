@@ -29,7 +29,6 @@ jobs:
         uses: DeLaGuardo/clojure-lint-action@f712330e03eec4daa36da7045213190083aca4dd
         with:
           clj-kondo-args: --lint src test
-          version: '2020.04.05'
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run tests
