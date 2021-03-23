@@ -57,6 +57,7 @@
    "Options:"
    "  -h, --help                 display help message"
    "  -v, --verbose              increase verbosity"
+   "  -p, --pretty               prettify output (if serializer supports it)"
    "  -c, --config EDN           configuration"
    "  -i, --input FORMAT   json  input format (one of json, edn)"
    "  -o, --output FORMAT  json  output format (one of json, edn)"])
