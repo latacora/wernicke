@@ -269,11 +269,11 @@ To run the project directly from a source checkout:
 
 To run the project's tests:
 
-    $ clj -A:test
+    $ clj -M:test
 
 To build a native image:
 
-    $ clj -A:native-image
+    $ clj -M:native-image
 
 (This requires GraalVM to be installed with SubstrateVM, and the `GRAAL_HOME`
 environment variable to be set.)
