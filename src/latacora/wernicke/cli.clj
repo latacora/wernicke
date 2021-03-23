@@ -4,6 +4,7 @@
    [clojure.tools.cli :as cli]
    [clojure.edn :as edn]
    [clojure.string :as str]
+   [clojure.pprint :as pp]
    [latacora.wernicke.core :as wc]
    [taoensso.timbre :as log])
   (:gen-class))
@@ -15,7 +16,9 @@
 (def ^:private serializers
   {:json (fn [obj {:keys [pretty]}]
            (json/encode-stream obj *out* {:pretty pretty}))
-   :edn (fn [obj _opts] (pr obj))})
+   :edn (fn [obj {:keys [pretty]}]
+          (let [write! (if pretty pp/pprint pr)]
+            (write! obj)))})
 
 (defn ^:private format-opt
   [format-name impls]
