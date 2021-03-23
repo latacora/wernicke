@@ -98,10 +98,10 @@
   [& args]
   (let [{:keys [opts exit-message ok]} (validate-args args)
         {:keys [input-format output-format verbosity pretty config]} opts
-        config (wc/process-opts config)]
-       ; Instantiate input parser and output serializer
-       (def input-parser (get  parsers (keyword input-format)))
-       (def output-serializer (get  (serializers pretty) (keyword output-format)))
+        config (wc/process-opts config)
+        input-parser (get  parsers (keyword input-format))
+        output-serializer (get  (serializers pretty) (keyword output-format))
+        ]
     (when exit-message (exit! exit-message (if ok 0 1)))
     (log/set-config!
      (assoc log/example-config
