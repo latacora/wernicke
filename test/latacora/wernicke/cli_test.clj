@@ -87,7 +87,7 @@
     (t/is (= false (:exited? regular) (:exited? pretty) (:exited? long-pretty)))
     (t/is (= pretty long-pretty))
     (t/is (not= regular pretty))
-    (t/is (< (count-whitespace regular) (count-whitespace pretty)))))
+    (t/is (<= (count-whitespace regular) (count-whitespace pretty)))))
 
 (t/deftest cli-tests
   (t/is (= {:exited? true
