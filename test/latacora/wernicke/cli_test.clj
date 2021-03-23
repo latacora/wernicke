@@ -74,6 +74,18 @@
 (def edn
   (pr-str input))
 
+(defn ^:private pretty-print-test
+  [cli-test-harness-args]
+  (let [regular (cli-test-harness json cli-test-harness-args)
+        pretty (cli-test-harness json (conj cli-test-harness-args "-p"))
+        long-pretty (cli-test-harness json (conj cli-test-harness-args "--pretty"))
+        count-whitespace (fn [output]
+                           (->> output :value :out (filter #{\space \n}) count))]
+    (t/is (= false (:exited? regular) (:exited? pretty) (:exited? long-pretty)))
+    (t/is (= pretty long-pretty))
+    (t/is (not= regular pretty))
+    (t/is (< (count-whitespace regular) (count-whitespace pretty)))))
+
 (t/deftest cli-tests
   (t/is (= {:exited? true
             :value {:message expected-help :code 0}}
@@ -130,6 +142,10 @@
       (t/is (= pretty long-pretty))
       (t/is (not= regular pretty))
       (t/is (< (count-whitespace regular) (count-whitespace pretty)))))
+
+  (t/testing "pretty printing adds more whitespace"
+    (t/testing "json" (pretty-print-test []))
+    (t/testing "edn" (pretty-print-test ["--output=edn"])))
 
   (let [args ["--config"
               (pr-str
