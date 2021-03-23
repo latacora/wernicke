@@ -12,22 +12,23 @@
   {:json json/parse-stream
    :edn edn/read})
 
-(defn ^:private serializers
-  [pretty]
-  {:json (fn [obj] (json/encode-stream obj *out* {:pretty pretty}))
-   :edn pr})
+(def ^:private serializers
+  {:json (fn [obj {:keys [pretty]}]
+           (json/encode-stream obj *out* {:pretty pretty}))
+   :edn (fn [obj _opts] (pr obj))})
 
-(defn format-opt
-  [format-name]
+(defn ^:private format-opt
+  [format-name impls]
   (let [short (str "-" (first format-name))
         long (format "--%s FORMAT" format-name)
-        message (format "%s format (one of json, edn)" format-name)
-        formats-error (str "format must be one of json, edn")]
+        formats (->> impls keys (map name) (str/join ", "))
+        message (format "%s format (one of %s)" format-name formats)
+        formats-error (str "format must be one of " formats)]
     [short long message
-     :id (keyword (str format-name "-format"))
-     :default (str "json")
+     :id (keyword (str format-name "-fn"))
+     :default (impls :json)
      :default-desc "json"
-     :parse-fn (comp {:json "json", :edn "edn"} keyword str/lower-case)
+     :parse-fn (comp impls keyword str/lower-case)
      :validate [some? formats-error]]))
 
 (def ^:private cli-opts
@@ -41,8 +42,8 @@
     :default false]
    ["-c" "--config EDN" "configuration"
     :parse-fn edn/read-string]
-   (format-opt "input")
-   (format-opt "output")])
+   (format-opt "input" parsers)
+   (format-opt "output" serializers)])
 
 (defn ^:private usage
   [opts-summary]
@@ -97,13 +98,11 @@
   "I don't do a whole lot ... yet."
   [& args]
   (let [{:keys [opts exit-message ok]} (validate-args args)
-        {:keys [input-format output-format verbosity pretty config]} opts
-        config (wc/process-opts config)
-        input-parser (get  parsers (keyword input-format))
-        output-serializer (get  (serializers pretty) (keyword output-format))]
+        {:keys [input-fn output-fn verbosity config]} opts
+        config (wc/process-opts config)]
     (when exit-message (exit! exit-message (if ok 0 1)))
     (log/set-config!
      (assoc log/example-config
             :appenders [(log/println-appender {:stream :*err*})]
             :level (verbosity->log-level verbosity)))
-    (-> *in* input-parser (wc/redact! config) output-serializer)))
+    (-> *in* input-fn (wc/redact! config) (output-fn opts))))
