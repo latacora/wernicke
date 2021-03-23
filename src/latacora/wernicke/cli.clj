@@ -36,7 +36,7 @@
     :id :verbosity
     :default 0
     :update-fn inc]
-   ["-p" "--pretty" "prettify output"
+   ["-p" "--pretty" "prettify output (if serializer supports it)"
     :id :pretty
     :default false]
    ["-c" "--config EDN" "configuration"
