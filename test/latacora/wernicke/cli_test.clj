@@ -136,17 +136,6 @@
         "explicit edn in, explicit edn out")
 
   (t/testing "pretty printing adds more whitespace"
-    (let [regular (cli-test-harness json [])
-          pretty (cli-test-harness json ["-p"])
-          long-pretty (cli-test-harness json ["--pretty"])
-          count-whitespace (fn [output]
-                             (->> output :value :out (filter #{\space \n}) count))]
-      (t/is (= false (:exited? regular) (:exited? pretty) (:exited? long-pretty)))
-      (t/is (= pretty long-pretty))
-      (t/is (not= regular pretty))
-      (t/is (< (count-whitespace regular) (count-whitespace pretty)))))
-
-  (t/testing "pretty printing adds more whitespace"
     (t/testing "json" (pretty-print-test []))
     (t/testing "edn" (pretty-print-test ["--output=edn"])))
 
