@@ -22,9 +22,9 @@ jobs:
           gu install native-image
 
       - name: Setup Clojure
-        uses: DeLaGuardo/setup-clojure@2.0
+        uses: DeLaGuardo/setup-clojure@91054c3b9dc15fdc6a2f45be47405d891e672ef0
         with:
-          tools-deps: "latest"
+          cli: latest
 
       - name: Show Clojure env details
         run: clojure -Sdescribe
