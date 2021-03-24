@@ -15,7 +15,7 @@
          :extra-deps {lambdaisland/kaocha {:mvn/version "1.0.829"}
                       mvxcvi/multiformats {:mvn/version "0.2.1"}}}
   :native-image
-  {:main-opts ["-m clj.native-image latacora.wernicke.cli"
+  {:main-opts ["-m" "clj.native-image" "latacora.wernicke.cli"
                "--verbose"
                "--no-fallback"
                "-Dclojure.compiler.direct-linking=true"
