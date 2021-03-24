@@ -4,6 +4,7 @@
    [clojure.tools.cli :as cli]
    [clojure.edn :as edn]
    [clojure.string :as str]
+   [clojure.pprint :as pp]
    [latacora.wernicke.core :as wc]
    [taoensso.timbre :as log])
   (:gen-class))
@@ -13,10 +14,13 @@
    :edn edn/read})
 
 (def ^:private serializers
-  {:json (fn [obj] (json/encode-stream obj *out*))
-   :edn pr})
+  {:json (fn [obj {:keys [pretty]}]
+           (json/encode-stream obj *out* {:pretty pretty}))
+   :edn (fn [obj {:keys [pretty]}]
+          (let [write! (if pretty pp/pprint pr)]
+            (write! obj)))})
 
-(defn format-opt
+(defn ^:private format-opt
   [format-name impls]
   (let [short (str "-" (first format-name))
         long (format "--%s FORMAT" format-name)
@@ -36,6 +40,9 @@
     :id :verbosity
     :default 0
     :update-fn inc]
+   ["-p" "--pretty" "prettify output (if serializer supports it)"
+    :id :pretty
+    :default false]
    ["-c" "--config EDN" "configuration"
     :parse-fn edn/read-string]
    (format-opt "input" parsers)
@@ -101,4 +108,4 @@
      (assoc log/example-config
             :appenders [(log/println-appender {:stream :*err*})]
             :level (verbosity->log-level verbosity)))
-    (-> *in* input-fn (wc/redact! config) output-fn)))
+    (-> *in* input-fn (wc/redact! config) (output-fn opts))))

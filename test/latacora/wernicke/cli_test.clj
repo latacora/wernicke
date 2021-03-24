@@ -45,7 +45,10 @@
 
 (defn cli-test-harness
   [in-str args]
-  (with-in-str in-str (with-fake-exit (with-captured-output (apply cli/-main args)))))
+  (with-in-str in-str
+    (with-fake-exit
+      (with-captured-output
+        (apply cli/-main args)))))
 
 (def help-lines
   ["Redact structured data."
@@ -57,6 +60,7 @@
    "Options:"
    "  -h, --help                 display help message"
    "  -v, --verbose              increase verbosity"
+   "  -p, --pretty               prettify output (if serializer supports it)"
    "  -c, --config EDN           configuration"
    "  -i, --input FORMAT   json  input format (one of json, edn)"
    "  -o, --output FORMAT  json  output format (one of json, edn)"])
@@ -72,6 +76,18 @@
 
 (def edn
   (pr-str input))
+
+(defn ^:private pretty-print-test
+  [cli-test-harness-args]
+  (let [regular (cli-test-harness json cli-test-harness-args)
+        pretty (cli-test-harness json (conj cli-test-harness-args "-p"))
+        long-pretty (cli-test-harness json (conj cli-test-harness-args "--pretty"))
+        count-whitespace (fn [output]
+                           (->> output :value :out (filter #{\space \n}) count))]
+    (t/is (= false (:exited? regular) (:exited? pretty) (:exited? long-pretty)))
+    (t/is (= pretty long-pretty))
+    (t/is (not= regular pretty))
+    (t/is (<= (count-whitespace regular) (count-whitespace pretty)))))
 
 (t/deftest cli-tests
   (t/is (= {:exited? true
@@ -118,6 +134,10 @@
                     :err ""}}
            (cli-test-harness edn ["--input" "edn" "--output" "edn"]))
         "explicit edn in, explicit edn out")
+
+  (t/testing "pretty printing adds more whitespace"
+    (t/testing "json" (pretty-print-test []))
+    (t/testing "edn" (pretty-print-test ["--output=edn"])))
 
   (let [args ["--config"
               (pr-str

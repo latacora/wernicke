@@ -218,7 +218,8 @@ allows you to still do correlation in the result.
 </tr>
 </table>
 
-(These examples were pretty-printed for viewing comfort, but wernicke does not do that for you. Try [jq](https://stedolan.github.io/jq/).)
+(These examples were pretty-printed with the `-p`/`--pretty` CLI flag.
+Alternatively, use [jq](https://stedolan.github.io/jq/) for JSON.)
 
 ## Installation
 
