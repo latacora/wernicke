@@ -12,9 +12,10 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Setup GraalVM CE
-        uses: DeLaGuardo/setup-graalvm@3
+        uses: DeLaGuardo/setup-graalvm@4.0
         with:
-          graalvm-version: '20.1.0.java11'
+          graalvm: '21.0.0.2'
+          java: 'java11'
 
       - name: Setup native-image
         run: |
@@ -37,7 +38,7 @@ jobs:
       - name: Build native-image
         run: clojure -A:native-image
 
-      - name: Run Binary
+      - name: Smoke test the wernicke binary
         run: |
           printf '{"vpc-12345": "sg-12345"}' | ./wernicke
 
