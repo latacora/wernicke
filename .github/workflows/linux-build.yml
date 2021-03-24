@@ -31,13 +31,13 @@ jobs:
         run: clojure -Sdescribe
 
       - name: Run tests
-        run: clojure -A:test
+        run: clojure -M:test
 
       - name: Install upx
         run: sudo apt-get install upx
 
       - name: Build native-image
-        run: clojure -A:native-image --static
+        run: clojure -M:native-image --static
 
       - name: Smoke test the wernicke binary
         run: |
