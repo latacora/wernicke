@@ -32,4 +32,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run tests
-        run: clojure -A:test
+        run: clojure -M:test
